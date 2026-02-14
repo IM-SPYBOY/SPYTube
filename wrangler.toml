@@ -1,0 +1,7 @@
+name = "spytube"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "spytube-db"
+database_id = "8a0e9385-7380-400c-9461-3034dd72dfc8"
