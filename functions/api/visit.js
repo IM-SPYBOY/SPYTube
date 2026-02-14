@@ -1,17 +1,15 @@
 export async function onRequest(context) {
     const { request, env } = context;
     const db = env.DB;
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const ua = request.headers.get("User-Agent") || "unknown";
 
-    // Log visitor
     try {
-        const stmt = db.prepare(`
-      INSERT INTO visitors (date, count) 
-      VALUES (DATE('now'), 1) 
-      ON CONFLICT(date) DO UPDATE SET count = count + 1
-    `);
-        await stmt.run();
+        await db.prepare("INSERT INTO visitors (ip, user_agent) VALUES (?, ?)")
+            .bind(ip, ua)
+            .run();
     } catch (e) {
-        console.error("Failed to log visitor:", e);
+        // Silent fail to avoid crashing the request
     }
 
     return new Response("OK", { status: 200 });
