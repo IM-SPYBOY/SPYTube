@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Inner glass fill with subtle gradient -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#1AFFFFFF"
+                android:centerColor="#12FFFFFF"
+                android:endColor="#08FFFFFF"
+                android:type="linear" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+    <!-- Subtle glass border -->
+    <item>
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="0.5dp"
+                android:color="#22FFFFFF" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+</layer-list>

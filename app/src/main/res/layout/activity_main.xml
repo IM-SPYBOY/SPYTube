@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <!-- Main Content Area -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinator"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Hero Banner with AppBar -->
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:elevation="0dp">
+
+            <com.google.android.material.appbar.CollapsingToolbarLayout
+                android:layout_width="match_parent"
+                android:layout_height="550dp"
+                app:layout_scrollFlags="scroll|exitUntilCollapsed"
+                app:contentScrim="@color/background">
+
+                <!-- Hero Image -->
+                <ImageView
+                    android:id="@+id/hero_backdrop"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    app:layout_collapseMode="parallax" />
+
+                <!-- Gradient Overlay -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/hero_gradient" />
+
+                <!-- Hero Content -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:orientation="vertical"
+                    android:padding="24dp"
+                    android:paddingBottom="100dp"
+                    app:layout_collapseMode="parallax">
+
+                    <!-- Netflix Logo Badge -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="S"
+                        android:textColor="@color/primary"
+                        android:textSize="32sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-black"
+                        android:shadowColor="#80000000"
+                        android:shadowDx="0"
+                        android:shadowDy="4"
+                        android:shadowRadius="8" />
+
+                    <!-- Title -->
+                    <TextView
+                        android:id="@+id/hero_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Featured Title"
+                        android:textColor="@color/text_primary"
+                        android:textSize="36sp"
+                        android:textStyle="bold"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        android:shadowColor="#80000000"
+                        android:shadowDx="0"
+                        android:shadowDy="4"
+                        android:shadowRadius="8" />
+
+                    <!-- Meta -->
+                    <TextView
+                        android:id="@+id/hero_meta"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp"
+                        android:shadowColor="#80000000"
+                        android:shadowDx="0"
+                        android:shadowDy="2"
+                        android:shadowRadius="4" />
+
+                    <!-- Action Buttons -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:orientation="horizontal">
+
+                        <!-- Play Button -->
+                        <Button
+                            android:id="@+id/btn_play"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/btn_glass_white"
+                            android:text="▶ Play"
+                            android:textColor="#000000"
+                            android:textStyle="bold"
+                            android:textAllCaps="false"
+                            android:elevation="0dp"
+                            android:stateListAnimator="@null" />
+
+                        <!-- My List Button -->
+                        <Button
+                            android:id="@+id/btn_info"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/btn_glass_secondary"
+                            android:text="ℹ More Info"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:textAllCaps="false"
+                            android:elevation="0dp"
+                            android:stateListAnimator="@null" />
+
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Top Toolbar -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="24dp"
+                    app:layout_collapseMode="pin">
+
+                    <!-- Logo -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SPYTUBE"
+                        android:textColor="@color/primary"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-black"
+                        android:shadowColor="#80000000"
+                        android:shadowDx="0"
+                        android:shadowDy="4"
+                        android:shadowRadius="8" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <!-- Search -->
+                    <ImageButton
+                        android:id="@+id/btn_search"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/glass_panel"
+                        android:src="@drawable/ic_search"
+                        android:padding="8dp"
+                        android:contentDescription="Search" />
+
+                </LinearLayout>
+
+            </com.google.android.material.appbar.CollapsingToolbarLayout>
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <!-- Content Rows -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rows_recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="100dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+        <!-- Loading -->
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/primary"
+            android:visibility="gone" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <!-- Floating Glass Bottom Navigation -->
+    <LinearLayout
+        android:id="@+id/nav_container"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="40dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/glass_nav_bg"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        android:elevation="8dp">
+
+        <LinearLayout
+            android:id="@+id/nav_home"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless">
+
+            <ImageView
+                android:id="@+id/nav_home_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_home"
+                android:tint="@color/text_primary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_search"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless">
+
+            <ImageView
+                android:id="@+id/nav_search_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_search"
+                android:tint="@color/nav_inactive" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_coming"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless">
+
+            <ImageView
+                android:id="@+id/nav_coming_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_coming"
+                android:tint="@color/nav_inactive" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nav_downloads"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless">
+
+            <ImageView
+                android:id="@+id/nav_downloads_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_download"
+                android:tint="@color/nav_inactive" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

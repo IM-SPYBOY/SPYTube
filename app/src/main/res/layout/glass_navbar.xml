@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/glass_navbar"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:layout_gravity="bottom"
+    android:layout_marginHorizontal="20dp"
+    android:layout_marginBottom="24dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:elevation="8dp">
+
+    <!-- Home (separate glass circle, left) -->
+    <ImageView
+        android:id="@+id/nav_home_btn"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_home"
+        android:tint="#FFFFFF"
+        android:contentDescription="Home"
+        android:background="@drawable/glass_circle_bg"
+        android:foreground="?attr/selectableItemBackgroundBorderless" />
+
+    <View
+        android:layout_width="6dp"
+        android:layout_height="1dp" />
+
+    <!-- Center glass pill (Coming + Downloads) -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="@drawable/glass_pill_bg">
+
+        <ImageView
+            android:id="@+id/nav_coming_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="12dp"
+            android:src="@drawable/ic_coming"
+            android:tint="#BBBBBB"
+            android:contentDescription="Coming Soon"
+            android:foreground="?attr/selectableItemBackgroundBorderless" />
+
+        <ImageView
+            android:id="@+id/nav_downloads_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="12dp"
+            android:src="@drawable/ic_download"
+            android:tint="#BBBBBB"
+            android:contentDescription="Downloads"
+            android:foreground="?attr/selectableItemBackgroundBorderless" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="6dp"
+        android:layout_height="1dp" />
+
+    <!-- Search (separate glass circle, right) -->
+    <ImageView
+        android:id="@+id/nav_search_btn"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_search"
+        android:tint="#FFFFFF"
+        android:contentDescription="Search"
+        android:background="@drawable/glass_circle_bg"
+        android:foreground="?attr/selectableItemBackgroundBorderless" />
+
+</LinearLayout>

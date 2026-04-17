@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<style>
+* { margin:0; padding:0; overflow:hidden; background:#0A0A14; }
+body { width:100vw; height:100vh; display:flex; align-items:center; justify-content:center; }
+#player-wrap {
+    position:relative;
+    width:100vw;
+    /* 16:9 = 56.25vw height, but we want to fill the container vertically
+       so we scale it up to cover the full viewport height */
+    height:100vh;
+    overflow:hidden;
+    pointer-events:none;
+}
+#player {
+    position:absolute;
+    /* Center the 16:9 iframe and let it overflow/crop */
+    width:178vh; /* 16/9 * 100vh to maintain aspect ratio */
+    height:100vh;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+}
+</style>
+</head>
+<body>
+<div id="player-wrap"><div id="player"></div></div>
+<script>
+var tag = document.createElement('script');
+tag.src = 'https://www.youtube.com/iframe_api';
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+var player;
+var videoId = '';
+
+function onYouTubeIframeAPIReady() {
+    if (videoId) createPlayer();
+}
+
+function loadVideoById(id) {
+    videoId = id;
+    if (typeof YT !== 'undefined' && YT.Player) createPlayer();
+}
+
+function createPlayer() {
+    if (player) { player.loadVideoById(videoId); return; }
+    player = new YT.Player('player', {
+        width: '100%',
+        height: '100%',
+        videoId: videoId,
+        playerVars: {
+            autoplay: 1,
+            mute: 1,
+            controls: 0,
+            showinfo: 0,
+            rel: 0,
+            loop: 1,
+            playlist: videoId,
+            modestbranding: 1,
+            playsinline: 1,
+            fs: 0,
+            iv_load_policy: 3,
+            disablekb: 1,
+            cc_load_policy: 0,
+            origin: 'https://www.example.com'
+        },
+        events: {
+            onReady: function(event) {
+                event.target.mute();
+                event.target.playVideo();
+                Android.onPlayerReady();
+            },
+            onStateChange: function(event) {
+                if (event.data === YT.PlayerState.ENDED) player.playVideo();
+            },
+            onError: function(event) {
+                Android.onPlayerError(event.data);
+            }
+        }
+    });
+}
+
+function toggleMute() {
+    if (!player) return 'true';
+    if (player.isMuted()) { player.unMute(); return 'false'; }
+    else { player.mute(); return 'true'; }
+}
+function pauseVideo() { if (player && player.pauseVideo) player.pauseVideo(); }
+function playVideo() { if (player && player.playVideo) player.playVideo(); }
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:splitMotionEvents="false">
+
+    <!-- Brightness Slider (Left) -->
+    <LinearLayout
+        android:id="@+id/layout_brightness"
+        android:layout_width="36dp"
+        android:layout_height="160dp"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="24dp"
+        android:background="@drawable/glass_panel"
+        android:orientation="vertical"
+        android:gravity="bottom|center_horizontal"
+        android:padding="3dp"
+        android:visibility="gone"
+        android:elevation="12dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <View
+                android:id="@+id/view_brightness_progress"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/glass_pill_bg"
+                android:backgroundTint="#FFFFFF"
+                android:alpha="0.9"/>
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Volume Slider (Right) -->
+    <LinearLayout
+        android:id="@+id/layout_volume"
+        android:layout_width="36dp"
+        android:layout_height="160dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="24dp"
+        android:background="@drawable/glass_panel"
+        android:orientation="vertical"
+        android:gravity="bottom|center_horizontal"
+        android:padding="3dp"
+        android:visibility="gone"
+        android:elevation="12dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <View
+                android:id="@+id/view_volume_progress"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/glass_pill_bg"
+                android:backgroundTint="#FFFFFF"
+                android:alpha="0.9"/>
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Center Info -->
+    <TextView
+        android:id="@+id/text_center_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:background="@drawable/glass_panel"
+        android:padding="16dp"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+</RelativeLayout>

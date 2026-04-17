@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Mode Colors (night override) -->
+    <color name="background">#050510</color>
+
+    <!-- Glass Surfaces -->
+    <color name="glass_surface">#1AFFFFFF</color>
+    <color name="glass_surface_light">#26FFFFFF</color>
+    <color name="glass_border">#1FFFFFFF</color>
+    <color name="glass_nav_bg">#CC0A0A14</color>
+
+    <!-- Accents -->
+    <color name="primary">#E50914</color>
+    <color name="accent_gold">#FFD700</color>
+    <color name="accent_glow">#402979FF</color>
+
+    <!-- Text -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#CCFFFFFF</color>
+    <color name="text_muted">#80FFFFFF</color>
+
+    <!-- Compat -->
+    <color name="surface">#12121C</color>
+    <color name="surface_light">#1F1F2E</color>
+    <color name="card_bg">#00000000</color>
+    <color name="nav_bg">#050510</color>
+    <color name="nav_inactive">#66FFFFFF</color>
+    <color name="primary_dark">#B20710</color>
+    <color name="overlay">#CC000000</color>
+</resources>
