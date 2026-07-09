@@ -47,6 +47,13 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = androidx.activity.SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
+        // Optimized PRDownloader config for faster downloads
+        val config = com.downloader.PRDownloaderConfig.newBuilder()
+            .setReadTimeout(60_000)
+            .setConnectTimeout(30_000)
+            .setUserAgent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+            .build()
+        com.downloader.PRDownloader.initialize(applicationContext, config)
         enable120fps()
         
         setContent {

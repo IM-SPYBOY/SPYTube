@@ -1,0 +1,196 @@
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { Platform, Animated, TouchableWithoutFeedback, View } from 'react-native';
+import Video, { VideoRef, SelectedTrack, BufferingStrategyType, ResizeMode } from 'react-native-video';
+import RNImmersiveMode from 'react-native-immersive-mode';
+
+// Subtitle style configuration interface - matches ExoPlayer's SubtitleStyle
+export interface SubtitleStyleConfig {
+  // Font size in SP (scale-independent pixels) for subtitle text
+  // Default: -1 (uses system default)
+  fontSize?: number;
+  
+  // Padding values in pixels
+  paddingTop?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+  paddingRight?: number;
+  
+  // Opacity of subtitles (0.0 to 1.0)
+  // 0 = hidden, 1 = fully visible
+  opacity?: number;
+  
+  // Whether subtitles should follow video position when video is resized
+  // true = subtitles stay within video bounds
+  // false = subtitles can extend beyond video bounds
+  subtitlesFollowVideo?: boolean;
+}
+
+// Default subtitle style configuration
+export const DEFAULT_SUBTITLE_STYLE: SubtitleStyleConfig = {
+  fontSize: 18,
+  paddingTop: 0,
+  paddingBottom: 60,
+  paddingLeft: 16,
+  paddingRight: 16,
+  opacity: 1,
+  subtitlesFollowVideo: true,
+};
+
+interface VideoPlayerProps {
+  src: string;
+  headers?: { [key: string]: string };
+  paused: boolean;
+  volume: number;
+  currentTime: number;
+  selectedAudioTrack?: SelectedTrack;
+  selectedTextTrack?: SelectedTrack;
+  resizeMode?: ResizeMode;
+  // Subtitle customization - pass custom subtitle styling
+  subtitleStyle?: SubtitleStyleConfig;
+  onProgress?: (data: { currentTime: number; playableDuration: number }) => void;
+  onLoad?: (data: { duration: number }) => void;
+  onError?: (error: any) => void;
+  onBuffer?: (data: { isBuffering: boolean }) => void;
+  onSeek?: (data: { currentTime: number; seekTime: number }) => void;
+  onEnd?: () => void;
+}
+
+export const AndroidVideoPlayer: React.FC<VideoPlayerProps> = ({
+  src,
+  headers,
+  paused,
+  volume,
+  currentTime,
+  selectedAudioTrack,
+  selectedTextTrack,
+  resizeMode = 'contain' as ResizeMode,
+  subtitleStyle: customSubtitleStyle,
+  onProgress,
+  onLoad,
+  onError,
+  onBuffer,
+  onSeek,
+  onEnd,
+}) => {
+  const videoRef = useRef<VideoRef>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
+  const [lastSeekTime, setLastSeekTime] = useState<number>(0);
+
+  // Merge custom subtitle style with defaults
+  const subtitleStyle = useMemo(() => ({
+    ...DEFAULT_SUBTITLE_STYLE,
+    ...customSubtitleStyle,
+  }), [customSubtitleStyle]);
+
+  // Enable immersive mode when video player mounts, disable when it unmounts
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      try {
+        RNImmersiveMode.setBarMode('Bottom');
+        RNImmersiveMode.fullLayout(true);
+      } catch (error) {
+        console.log('Immersive mode error:', error);
+      }
+
+      return () => {
+        // Restore navigation bar when video player unmounts
+        try {
+          RNImmersiveMode.setBarMode('Normal');
+          RNImmersiveMode.fullLayout(false);
+        } catch (error) {
+          console.log('Immersive mode cleanup error:', error);
+        }
+      };
+    }
+  }, []);
+
+  // Only render on Android
+  if (Platform.OS !== 'android') {
+    return null;
+  }
+
+  useEffect(() => {
+    if (isLoaded && !isSeeking && Math.abs(currentTime - lastSeekTime) > 1) {
+      setIsSeeking(true);
+      videoRef.current?.seek(currentTime);
+      setLastSeekTime(currentTime);
+    }
+  }, [currentTime, isLoaded, isSeeking, lastSeekTime]);
+
+  const handleLoad = (data: any) => {
+    setIsLoaded(true);
+    onLoad?.(data);
+  };
+
+  const handleProgress = (data: any) => {
+    if (!isSeeking) {
+      onProgress?.(data);
+    }
+  };
+
+  const handleSeek = (data: any) => {
+    setIsSeeking(false);
+    onSeek?.(data);
+  };
+
+  const handleBuffer = (data: any) => {
+    onBuffer?.(data);
+  };
+
+  const handleError = (error: any) => {
+    console.error('Video playback error:', error);
+    onError?.(error);
+  };
+
+  const handleEnd = () => {
+    onEnd?.();
+  };
+
+  return (
+    <Video
+      ref={videoRef}
+      source={headers ? { uri: src, headers } : { uri: src }}
+      style={{ flex: 1 }}
+      paused={paused}
+      volume={volume}
+      selectedAudioTrack={selectedAudioTrack}
+      selectedTextTrack={selectedTextTrack}
+      onLoad={handleLoad}
+      onProgress={handleProgress}
+      onSeek={handleSeek}
+      onBuffer={handleBuffer}
+      onError={handleError}
+      onEnd={handleEnd}
+      resizeMode={resizeMode}
+      controls={false}
+      playInBackground={false}
+      playWhenInactive={false}
+      progressUpdateInterval={250}
+      allowsExternalPlayback={false}
+      bufferingStrategy={BufferingStrategyType.DEFAULT}
+      ignoreSilentSwitch="ignore"
+      mixWithOthers="inherit"
+      rate={1.0}
+      repeat={false}
+      reportBandwidth={true}
+      useTextureView={true}
+      disableFocus={false}
+      minLoadRetryCount={3}
+      automaticallyWaitsToMinimizeStalling={true}
+      hideShutterView={false}
+      shutterColor="#000000"
+      subtitleStyle={{
+        fontSize: subtitleStyle.fontSize,
+        paddingTop: subtitleStyle.paddingTop,
+        paddingBottom: subtitleStyle.paddingBottom,
+        paddingLeft: subtitleStyle.paddingLeft,
+        paddingRight: subtitleStyle.paddingRight,
+        opacity: subtitleStyle.opacity,
+        subtitlesFollowVideo: subtitleStyle.subtitlesFollowVideo,
+      }}
+    />
+  );
+};
+
+export default AndroidVideoPlayer;

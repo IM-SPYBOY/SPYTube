@@ -2,4 +2,5 @@
 <paths>
     <external-files-path name="apk_downloads" path="updates/" />
     <external-files-path name="video_downloads" path="Download/" />
+    <external-path name="public_downloads" path="Download/" />
 </paths>

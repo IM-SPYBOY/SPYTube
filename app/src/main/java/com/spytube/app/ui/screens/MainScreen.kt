@@ -195,17 +195,18 @@ fun MainScreen(
                             items = heroItems,
                             pagerState = heroPagerState,
                             onPlayClick = { item -> 
-                                val intent = android.content.Intent(context, com.spytube.app.CinefyPlayerActivity::class.java)
-                                val itemTitle = item.title ?: item.name ?: ""
-                                intent.putExtra("searchTitle", itemTitle)
-                                intent.putExtra("isTv", item.isTv())
+                                val pi = android.content.Intent(context, com.spytube.app.CinefyPlayerActivity::class.java)
+                                val t = item.title ?: item.name ?: ""
+                                pi.putExtra("searchTitle", t)
+                                pi.putExtra("mediaId", item.id.toString())
+                                pi.putExtra("isTv", item.isTv())
                                 if (item.isTv()) {
-                                    intent.putExtra("season", 1)
-                                    intent.putExtra("episode", 1)
+                                    pi.putExtra("season", 1)
+                                    pi.putExtra("episode", 1)
                                 }
-                                intent.putExtra("resumePosition", com.spytube.app.models.CinefyCache.getPosition(context, itemTitle))
-                                intent.putExtra("media", item)
-                                context.startActivity(intent)
+                                pi.putExtra("resumePosition", com.spytube.app.models.CinefyCache.getPosition(context, t))
+                                pi.putExtra("media", item)
+                                context.startActivity(pi)
                             },
                             onInfoClick = { item -> onMediaClick(item) }
                         )
@@ -259,6 +260,7 @@ fun MainScreen(
                                             val resumePos = com.spytube.app.models.CinefyCache.getPosition(context, itemTitle)
                                             val pi = android.content.Intent(context, com.spytube.app.CinefyPlayerActivity::class.java)
                                             pi.putExtra("searchTitle", itemTitle)
+                                            pi.putExtra("mediaId", item.id.toString())
                                             if (cached != null) {
                                                 pi.putExtra("isTv", cached["isTv"] as? Boolean ?: false)
                                                 pi.putExtra("season", (cached["season"] as? Int) ?: 0)

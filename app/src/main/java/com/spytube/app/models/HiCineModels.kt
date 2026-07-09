@@ -55,6 +55,12 @@ data class HiCineItem(
         get() = (1..10).count { getSeasonData(it) != null }
 }
 
+data class HiCineRpcSearchItem(
+    @SerializedName("source_table") val sourceTable: String?,
+    @SerializedName("data") val data: HiCineItem,
+    @SerializedName("relevance_score") val relevanceScore: Double?,
+    @SerializedName("modified_date") val modifiedDate: String?
+)
 
 data class HiCinePaginatedResponse(
     @SerializedName("data") val data: List<HiCineItem>,

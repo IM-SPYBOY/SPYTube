@@ -3,14 +3,14 @@ package com.spytube.app.api
 import com.spytube.app.models.HiCineItem
 import com.spytube.app.models.HiCinePaginatedResponse
 import com.spytube.app.models.HiCineTokenResponse
-import okhttp3.OkHttpClient
+import com.spytube.app.models.HiCineRpcSearchItem
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import retrofit2.http.Headers
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.Url
-import java.util.concurrent.TimeUnit
 
 
 interface HiCineService {
@@ -18,6 +18,10 @@ interface HiCineService {
     // ── Search ─────────────────────────────────────────────────────
     @GET("search/{query}")
     suspend fun search(@Path("query") query: String): List<HiCineItem>
+
+    @Headers("x-api-key: hicine_website_secret_2025_exi9epdmrns")
+    @GET
+    suspend fun rpcSearch(@Url url: String): List<HiCineRpcSearchItem>
 
     /** Blocking version for Java interop — use .execute() from a background thread */
     @GET("search/{query}")
@@ -64,15 +68,10 @@ interface HiCineWorkerService {
 object HiCineClient {
     private const val BASE_URL = "https://api.hicine.info/api/"
 
-    private val okHttp = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
-
     val service: HiCineService by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(okHttp)
+            .client(IspBypassClient.client) // Layer 1-3 ISP bypass
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(HiCineService::class.java)
@@ -82,7 +81,7 @@ object HiCineClient {
     val workerService: HiCineWorkerService by lazy {
         Retrofit.Builder()
             .baseUrl("https://example.com/") // Required by Retrofit but overridden by @Url
-            .client(okHttp)
+            .client(IspBypassClient.client) // Layer 1-3 ISP bypass
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(HiCineWorkerService::class.java)

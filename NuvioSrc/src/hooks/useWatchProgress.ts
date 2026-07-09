@@ -1,0 +1,257 @@
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useTraktContext } from '../contexts/TraktContext';
+import { logger } from '../utils/logger';
+import { storageService } from '../services/storageService';
+
+interface WatchProgressData {
+  currentTime: number;
+  duration: number;
+  lastUpdated: number;
+  episodeId?: string;
+  traktSynced?: boolean;
+  traktProgress?: number;
+}
+
+export const useWatchProgress = (
+  id: string,
+  type: 'movie' | 'series',
+  episodeId?: string,
+  episodes: any[] = []
+) => {
+  const [watchProgress, setWatchProgress] = useState<WatchProgressData | null>(null);
+  const { isAuthenticated: isTraktAuthenticated } = useTraktContext();
+
+  // Use ref for episodes to avoid infinite loops - episodes array changes on every render
+  const episodesRef = useRef(episodes);
+  episodesRef.current = episodes;
+
+  // Function to get episode details from episodeId
+  const getEpisodeDetails = useCallback((episodeId: string): { seasonNumber: string; episodeNumber: string; episodeName: string } | null => {
+    const currentEpisodes = episodesRef.current;
+    // Try to parse from format "seriesId:season:episode"
+    const parts = episodeId.split(':');
+    if (parts.length === 3) {
+      const [, seasonNum, episodeNum] = parts;
+      // Find episode in our local episodes array
+      const episode = currentEpisodes.find(
+        ep => ep.season_number === parseInt(seasonNum) &&
+          ep.episode_number === parseInt(episodeNum)
+      );
+
+      if (episode) {
+        return {
+          seasonNumber: seasonNum,
+          episodeNumber: episodeNum,
+          episodeName: episode.name
+        };
+      }
+    }
+
+    // If not found by season/episode, try stremioId
+    const episodeByStremioId = currentEpisodes.find(ep => ep.stremioId === episodeId);
+    if (episodeByStremioId) {
+      return {
+        seasonNumber: episodeByStremioId.season_number.toString(),
+        episodeNumber: episodeByStremioId.episode_number.toString(),
+        episodeName: episodeByStremioId.name
+      };
+    }
+
+    return null;
+  }, []); // Removed episodes dependency - using ref instead
+
+  // Enhanced load watch progress with Trakt integration
+  const loadWatchProgress = useCallback(async () => {
+    try {
+      if (id && type) {
+        if (type === 'series') {
+          const allProgress = await storageService.getAllWatchProgress();
+
+          // Function to get episode number from episodeId
+          const getEpisodeNumber = (epId: string) => {
+            const parts = epId.split(':');
+            if (parts.length === 3) {
+              return {
+                season: parseInt(parts[1]),
+                episode: parseInt(parts[2])
+              };
+            }
+            return null;
+          };
+
+          // Get all episodes for this series with progress
+          const seriesProgresses = Object.entries(allProgress)
+            .filter(([key]) => key.includes(`${type}:${id}:`))
+            .map(([key, value]) => ({
+              episodeId: key.split(`${type}:${id}:`)[1],
+              progress: value
+            }))
+            .filter(({ episodeId, progress }) => {
+              const progressPercent = (progress.currentTime / progress.duration) * 100;
+              return progressPercent > 0;
+            });
+
+          // If we have a specific episodeId in route params
+          if (episodeId) {
+            const progress = await storageService.getWatchProgress(id, type, episodeId);
+            if (progress) {
+              // Always show the current episode progress when viewing it specifically
+              // This allows HeroSection to properly display watched state
+              setWatchProgress({
+                ...progress,
+                episodeId,
+                traktSynced: progress.traktSynced,
+                traktProgress: progress.traktProgress
+              });
+            } else {
+              setWatchProgress(null);
+            }
+          } else {
+            const COMPLETION_THRESHOLD = 85;
+            const incompleteProgresses = seriesProgresses.filter(({ progress }) => {
+              const progressPercent = (progress.currentTime / progress.duration) * 100;
+              return progressPercent < COMPLETION_THRESHOLD;
+            });
+            if (incompleteProgresses.length > 0) {
+              const sortedIncomplete = incompleteProgresses.sort((a, b) =>
+                b.progress.lastUpdated - a.progress.lastUpdated
+              );
+              const mostRecentIncomplete = sortedIncomplete[0];
+              setWatchProgress({
+                ...mostRecentIncomplete.progress,
+                episodeId: mostRecentIncomplete.episodeId,
+                traktSynced: mostRecentIncomplete.progress.traktSynced,
+                traktProgress: mostRecentIncomplete.progress.traktProgress
+              });
+            } else if (seriesProgresses.length > 0) {
+              const watchedEpisodeNumbers = seriesProgresses
+              .map(({ episodeId }) => getEpisodeNumber(episodeId))
+              .filter(Boolean)
+              .sort((a, b) => {
+                if (a!.season !== b!.season) return a!.season - b!.season;
+                return a!.episode - b!.episode;
+              });
+            if (watchedEpisodeNumbers.length > 0) {
+              const lastWatched = watchedEpisodeNumbers[watchedEpisodeNumbers.length - 1]!;
+              const currentEpisodes = episodesRef.current;
+              
+              const nextEpisode = currentEpisodes.find(ep => {
+                if (ep.season_number > lastWatched.season) return true;
+                if (ep.season_number === lastWatched.season && ep.episode_number > lastWatched.episode) return true;
+                return false;
+              });
+
+              if (nextEpisode) {
+                setWatchProgress({
+                  currentTime: 0,
+                  duration: nextEpisode.runtime * 60 || 0,
+                  lastUpdated: Date.now(),
+                  episodeId: `${id}:${nextEpisode.season_number}:${nextEpisode.episode_number}`,
+                  traktSynced: false,
+                  traktProgress: 0
+                });
+              } else {
+                setWatchProgress(null);
+              }
+            } else {
+              setWatchProgress(null);
+            }
+          } else {
+            setWatchProgress(null);
+          }
+        }
+        
+        } else {
+          // For movies
+          const progress = await storageService.getWatchProgress(id, type, episodeId);
+          if (progress && progress.currentTime > 0) {
+            // Always show progress data, even if watched (≥95%)
+            // The HeroSection will handle the "watched" state display
+            setWatchProgress({
+              ...progress,
+              episodeId,
+              traktSynced: progress.traktSynced,
+              traktProgress: progress.traktProgress
+            });
+          } else {
+            setWatchProgress(null);
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('[useWatchProgress] Error loading watch progress:', error);
+      setWatchProgress(null);
+    }
+  }, [id, type, episodeId]); // Removed episodes dependency - using ref instead
+
+  // Enhanced function to get play button text with Trakt awareness
+  const getPlayButtonText = useCallback(() => {
+    if (!watchProgress || watchProgress.currentTime <= 0) {
+      return 'Play';
+    }
+
+    // Consider episode complete if progress is >= 85%
+    const progressPercent = (watchProgress.currentTime / watchProgress.duration) * 100;
+    if (progressPercent >= 85) {
+      return 'Play';
+    }
+
+    // If we have Trakt data and it differs significantly from local, show "Resume" 
+    // but the UI will show the discrepancy
+    return 'Resume';
+  }, [watchProgress]);
+
+  // Subscribe to storage changes for real-time updates (with debounce to prevent loops)
+  useEffect(() => {
+    let debounceTimeout: NodeJS.Timeout | null = null;
+
+    const unsubscribe = storageService.subscribeToWatchProgressUpdates(() => {
+      // Debounce rapid updates to prevent infinite loops
+      if (debounceTimeout) {
+        clearTimeout(debounceTimeout);
+      }
+      debounceTimeout = setTimeout(() => {
+        loadWatchProgress();
+      }, 100);
+    });
+
+    return () => {
+      if (debounceTimeout) {
+        clearTimeout(debounceTimeout);
+      }
+      unsubscribe();
+    };
+  }, [loadWatchProgress]);
+
+  // Initial load - only once on mount
+  useEffect(() => {
+    loadWatchProgress();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, type, episodeId]); // Only re-run when core IDs change, not when loadWatchProgress ref changes
+
+  // Refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadWatchProgress();
+    }, [loadWatchProgress])
+  );
+
+  // Re-load when Trakt authentication status changes (with guard)
+  useEffect(() => {
+    // Skip on initial mount, only run when isTraktAuthenticated actually changes
+    const timeoutId = setTimeout(() => {
+      loadWatchProgress();
+    }, 200); // Slightly longer delay to avoid race conditions
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTraktAuthenticated]); // Intentionally exclude loadWatchProgress to prevent loops
+
+  return {
+    watchProgress,
+    getEpisodeDetails,
+    getPlayButtonText,
+    loadWatchProgress
+  };
+};

@@ -1,7 +1,7 @@
 package com.spytube.app.models
 
-import android.app.DownloadManager
 import android.content.Context
+import com.downloader.PRDownloader
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
@@ -10,6 +10,7 @@ import com.spytube.app.api.HiCineClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
@@ -98,10 +99,23 @@ object HiCineDownloadManager {
                     val workerUrl = "${uri.scheme}://${uri.host}"
                     val vcloudUrl = uri.getQueryParameter("vcloud") ?: continue
 
-                    // remainder is like "284.07 MB,720p" or "497.76 MB,1080p"
+                    // remainder is like "284.07 MB,720p" or "284.07 MB,Hindi,720p"
                     val remParts = remainder.split(",")
                     val size = remParts.getOrElse(0) { "" }.trim()
-                    val quality = remParts.getOrElse(1) { "" }.trim().ifEmpty { "Unknown" }
+                    
+                    var language = ""
+                    val quality = if (remParts.size >= 3) {
+                        language = remParts[1].trim()
+                        remParts[2].trim().ifEmpty { "Unknown" }
+                    } else {
+                        remParts.getOrElse(1) { "" }.trim().ifEmpty { "Unknown" }
+                    }
+
+                    val desc = if (language.isNotEmpty()) {
+                        language
+                    } else {
+                        "Episode $episodeNum - $quality"
+                    }
 
                     results.add(
                         HiCineDownloadLink(
@@ -109,7 +123,7 @@ object HiCineDownloadManager {
                             vcloudUrl = vcloudUrl,
                             quality = quality,
                             size = size,
-                            description = "Episode $episodeNum - $quality",
+                            description = desc,
                             episodeNumber = episodeNum
                         )
                     )
@@ -197,12 +211,18 @@ object HiCineDownloadManager {
         context: Context,
         link: HiCineDownloadLink,
         title: String,
-        posterUrl: String? = null
+        posterUrl: String? = null,
+        searchTitle: String = "",
+        tmdbId: String = "",
+        isTv: Boolean = false,
+        season: Int = 0,
+        episode: Int = 0,
+        replaceDownloadId: Long? = null
     ): Long? {
         val downloadUrl: String
 
-        if (link.source == "VidVault") {
-            // VidVault already provides the direct MKV link in workerUrl
+        if (link.source == "VidVault" || link.source == "4KHDHub") {
+            // VidVault and 4KHDHub already provide the direct MKV/ZIP link in workerUrl
             downloadUrl = link.workerUrl
             if (downloadUrl.isBlank()) return null
         } else {
@@ -246,31 +266,32 @@ object HiCineDownloadManager {
                 val sanitizedTitle = title.replace(Regex("[^a-zA-Z0-9()\\-_ ]"), "").trim()
                 val fileName = "${sanitizedTitle}_${link.quality}.mkv"
 
-                val request = DownloadManager.Request(Uri.parse(downloadUrl)).apply {
-                    setTitle("$title (${link.quality})")
-                    setDescription("${link.size} — SPYTube Download")
-                    setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                    setDestinationInExternalFilesDir(
-                        context, Environment.DIRECTORY_DOWNLOADS, fileName
-                    )
-                    setAllowedOverMetered(true)
-                    setAllowedOverRoaming(false)
-                    // Cloudflare workers block "AndroidDownloadManager" user-agent, resulting in 403 Forbidden 
-                    // and creating 0-byte empty files. Mocking a desktop browser fixes this immediately.
-                    addRequestHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-                    addRequestHeader("Referer", "https://vidvault.ru/")
-                    addRequestHeader("Origin", "https://vidvault.ru")
-                }
+                @Suppress("DEPRECATION")
+                val dirPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
 
-                val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                val downloadId = dm.enqueue(request)
+                val downloadId = PRDownloader.download(downloadUrl, dirPath, fileName)
+                    .setHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+                    .setHeader("Referer", "https://vidvault.ru/")
+                    .setHeader("Origin", "https://vidvault.ru")
+                    .build()
+                    .start(object : com.downloader.OnDownloadListener {
+                        override fun onDownloadComplete() {
+                            Log.d(TAG, "Download completed: $fileName")
+                        }
+                        override fun onError(error: com.downloader.Error?) {
+                            Log.e(TAG, "Download error for $fileName: ${error?.connectionException?.message ?: "Unknown"}")
+                        }
+                    })
 
                 // Save download info for tracking in DownloadsScreen
-                saveDownloadInfo(context, downloadId, title, link.quality, link.size, fileName, posterUrl)
+                if (replaceDownloadId != null) {
+                    removeDownload(context, replaceDownloadId)
+                }
+                saveDownloadInfo(context, downloadId.toLong(), title, link.quality, link.size, fileName, posterUrl, searchTitle, tmdbId, isTv, season, episode, downloadUrl)
 
                 Toast.makeText(context, "Download started: $title (${link.quality})", Toast.LENGTH_SHORT).show()
                 Log.d(TAG, "Download enqueued: id=$downloadId file=$fileName")
-                downloadId
+                downloadId.toLong()
             } catch (e: Exception) {
                 Log.e(TAG, "DownloadManager enqueue failed", e)
                 Toast.makeText(context, "Download failed: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -281,9 +302,14 @@ object HiCineDownloadManager {
 
     
     @JvmStatic
-    fun startDownloadBlocking(context: Context, link: HiCineDownloadLink, title: String, posterUrl: String? = null): Long? {
+    @JvmOverloads
+    fun startDownloadBlocking(
+        context: Context, link: HiCineDownloadLink, title: String, posterUrl: String? = null,
+        searchTitle: String = "", tmdbId: String = "", isTv: Boolean = false, season: Int = 0, episode: Int = 0,
+        replaceDownloadId: Long? = null
+    ): Long? {
         return kotlinx.coroutines.runBlocking {
-            startDownload(context, link, title, posterUrl)
+            startDownload(context, link, title, posterUrl, searchTitle, tmdbId, isTv, season, episode, replaceDownloadId)
         }
     }
 
@@ -293,7 +319,14 @@ object HiCineDownloadManager {
         return kotlinx.coroutines.runBlocking {
             val hicineJob = async(Dispatchers.IO) {
                 try {
-                    val results = HiCineClient.service.search(URLEncoder.encode(searchTitle, "UTF-8"))
+                    // HiCine RPC requires %20 instead of + for spaces
+                    val searchString = URLEncoder.encode(searchTitle, "UTF-8").replace("+", "%20")
+                    val rpcUrl = "https://api.hicine.info/rpc/search/$searchString"
+                    val results = try {
+                        HiCineClient.service.rpcSearch(rpcUrl).map { it.data }
+                    } catch (e: Exception) {
+                        HiCineClient.service.search(searchString)
+                    }
                     val match = results.firstOrNull { it.title.lowercase().contains(searchTitle.lowercase()) } ?: results.firstOrNull()
                     if (match != null) {
                         if (isTv) {
@@ -318,9 +351,20 @@ object HiCineDownloadManager {
                 )
             }
 
+            val fourKhDHubJob = async(Dispatchers.IO) {
+                com.spytube.app.api.FourKHDHubClient.fetchLinks(
+                    searchTitle = searchTitle,
+                    tmdbId = tmdbId,
+                    isTv = isTv,
+                    season = season,
+                    episode = episode
+                )
+            }
+
             val hicineLinks = hicineJob.await()
             val vidVaultLinks = vidVaultJob.await()
-            vidVaultLinks + hicineLinks
+            val fourKHDHubLinks = fourKhDHubJob.await()
+            vidVaultLinks + fourKHDHubLinks + hicineLinks
         }
     }
 
@@ -329,13 +373,10 @@ object HiCineDownloadManager {
     private const val PREFS_NAME = "hicine_downloads"
 
     private fun saveDownloadInfo(
-        context: Context,
-        downloadId: Long,
-        title: String,
-        quality: String,
-        size: String,
-        fileName: String,
-        posterUrl: String?
+        context: Context, downloadId: Long, title: String, quality: String,
+        size: String, fileName: String, posterUrl: String?,
+        searchTitle: String = "", tmdbId: String = "", isTv: Boolean = false, season: Int = 0, episode: Int = 0,
+        downloadUrl: String = ""
     ) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val ids = prefs.getStringSet("download_ids", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
@@ -348,6 +389,12 @@ object HiCineDownloadManager {
             .putString("dl_${downloadId}_file", fileName)
             .putLong("dl_${downloadId}_time", System.currentTimeMillis())
             .putString("dl_${downloadId}_poster", posterUrl ?: "")
+            .putString("dl_${downloadId}_searchTitle", searchTitle)
+            .putString("dl_${downloadId}_tmdbId", tmdbId)
+            .putBoolean("dl_${downloadId}_isTv", isTv)
+            .putInt("dl_${downloadId}_season", season)
+            .putInt("dl_${downloadId}_episode", episode)
+            .putString("dl_${downloadId}_url", downloadUrl)
             .apply()
     }
 
@@ -369,7 +416,13 @@ object HiCineDownloadManager {
             "size" to (prefs.getString("dl_${downloadId}_size", "") ?: ""),
             "file" to (prefs.getString("dl_${downloadId}_file", "") ?: ""),
             "time" to (prefs.getLong("dl_${downloadId}_time", 0).toString()),
-            "poster" to (prefs.getString("dl_${downloadId}_poster", "") ?: "")
+            "poster" to (prefs.getString("dl_${downloadId}_poster", "") ?: ""),
+            "searchTitle" to (prefs.getString("dl_${downloadId}_searchTitle", "") ?: ""),
+            "tmdbId" to (prefs.getString("dl_${downloadId}_tmdbId", "") ?: ""),
+            "isTv" to (prefs.getBoolean("dl_${downloadId}_isTv", false).toString()),
+            "season" to (prefs.getInt("dl_${downloadId}_season", 0).toString()),
+            "episode" to (prefs.getInt("dl_${downloadId}_episode", 0).toString()),
+            "url" to (prefs.getString("dl_${downloadId}_url", "") ?: "")
         )
     }
 
@@ -386,7 +439,103 @@ object HiCineDownloadManager {
             .remove("dl_${downloadId}_file")
             .remove("dl_${downloadId}_time")
             .remove("dl_${downloadId}_poster")
+            .remove("dl_${downloadId}_searchTitle")
+            .remove("dl_${downloadId}_tmdbId")
+            .remove("dl_${downloadId}_isTv")
+            .remove("dl_${downloadId}_season")
+            .remove("dl_${downloadId}_episode")
+            .remove("dl_${downloadId}_url")
             .apply()
+    }
+
+    /** Try to resume the old link before doing a full network refresh */
+    fun resumeOldLink(context: Context, oldDownloadId: Long): Boolean {
+        val meta = getDownloadMeta(context, oldDownloadId)
+        val oldUrl = meta["url"]
+        val fileName = meta["file"]
+        
+        if (oldUrl.isNullOrBlank() || fileName.isNullOrBlank()) {
+            return false // We don't have the old URL, fallback to refresh
+        }
+
+        try {
+            @Suppress("DEPRECATION")
+            val dirPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+            val newId = com.downloader.PRDownloader.download(oldUrl, dirPath, fileName)
+                .setHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
+                .setHeader("Referer", "https://vidvault.ru/")
+                .setHeader("Origin", "https://vidvault.ru")
+                .build()
+                .start(object : com.downloader.OnDownloadListener {
+                    override fun onDownloadComplete() {
+                        Log.d(TAG, "Download completed (resumed): $fileName")
+                    }
+                    override fun onError(error: com.downloader.Error?) {
+                        Log.e(TAG, "Download error (resumed) for $fileName: ${error?.connectionException?.message ?: "Unknown"}")
+                    }
+                })
+                
+            // Update the tracking data with the new ID
+            val title = meta["title"] ?: ""
+            val quality = meta["quality"] ?: ""
+            val size = meta["size"] ?: ""
+            val posterUrl = meta["poster"] ?: ""
+            val searchTitle = meta["searchTitle"] ?: ""
+            val tmdbId = meta["tmdbId"] ?: ""
+            val isTv = meta["isTv"].toBoolean()
+            val season = meta["season"]?.toIntOrNull() ?: 0
+            val episode = meta["episode"]?.toIntOrNull() ?: 0
+
+            removeDownload(context, oldDownloadId)
+            saveDownloadInfo(context, newId.toLong(), title, quality, size, fileName, posterUrl, searchTitle, tmdbId, isTv, season, episode, oldUrl)
+            return true
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to resume old link", e)
+            return false
+        }
+    }
+
+    /** Refresh a failed download link by re-searching and restarting */
+    fun refreshDownloadLink(context: Context, oldDownloadId: Long) {
+        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val meta = getDownloadMeta(context, oldDownloadId)
+                val searchTitle = meta["searchTitle"] ?: return@launch
+                val tmdbId = meta["tmdbId"] ?: return@launch
+                val isTv = meta["isTv"]?.toBoolean() ?: false
+                val season = meta["season"]?.toIntOrNull() ?: 0
+                val episode = meta["episode"]?.toIntOrNull() ?: 0
+                val targetQuality = meta["quality"] ?: return@launch
+                val title = meta["title"] ?: return@launch
+                val posterUrl = meta["poster"]
+                
+                if (searchTitle.isBlank()) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Cannot refresh: missing original search details", Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
+                
+                // Re-fetch links
+                val links = searchDownloadsBlocking(searchTitle, tmdbId, isTv, if(season>0) season else null, if(episode>0) episode else null)
+                val newLink = links.firstOrNull { it.quality == targetQuality } ?: links.firstOrNull()
+                
+                if (newLink != null) {
+                    // Start new download with new ID, leave the old PRDownloader DB row alone
+                    // so it doesn't asynchronously delete our .temp file!
+                    startDownloadBlocking(context, newLink, title, posterUrl, searchTitle, tmdbId, isTv, season, episode, oldDownloadId)
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Refresh failed: Link no longer available", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to refresh download", e)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Refresh failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
     // Helper to find a completed download by title
     @JvmStatic
@@ -398,7 +547,8 @@ object HiCineDownloadManager {
             if (title == targetTitle) {
                 val fileName = prefs.getString("dl_${id}_file", "")
                 if (!fileName.isNullOrEmpty()) {
-                    val file = java.io.File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
+                    @Suppress("DEPRECATION")
+                    val file = java.io.File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName)
                     if (file.exists()) {
                         val meta = getDownloadMeta(context, id).toMutableMap()
                         meta["downloadId"] = id.toString()
@@ -414,12 +564,12 @@ object HiCineDownloadManager {
     // Helper to completely delete a downloaded file and record from Java or Kotlin
     @JvmStatic
     fun removeDownloadAndFile(context: Context, downloadId: Long) {
-        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        dm.remove(downloadId)
+        PRDownloader.cancel(downloadId.toInt())
         val meta = getDownloadMeta(context, downloadId)
         val fileName = meta["file"] ?: ""
         if (fileName.isNotEmpty()) {
-            val file = java.io.File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
+            @Suppress("DEPRECATION")
+            val file = java.io.File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName)
             if (file.exists()) file.delete()
         }
         removeDownload(context, downloadId)

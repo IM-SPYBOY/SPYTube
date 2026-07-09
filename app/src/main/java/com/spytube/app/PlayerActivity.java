@@ -309,20 +309,17 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString().toLowerCase();
-                // Allow navigation within whitelisted streaming domains
-                if (url.contains("zxcstream.xyz") ||
-                    url.contains("vidrock.net") ||
-                    url.contains("vidlink.pro") ||
-                    url.contains("rabbitstream") ||
-                    url.contains("megacloud") ||
-                    url.contains("rapid-cloud") ||
-                    url.contains("dokicloud") ||
-                    url.contains("mcloud.bz") ||
-                    url.contains("e4.onhiflix")) {
-                    return false;
+                if (url.startsWith("intent://") || url.startsWith("market://") || url.startsWith("whatsapp://") || url.startsWith("viber://")) {
+                    return true;
                 }
-                // Block everything else (ad redirects)
-                return true;
+                // If an ad tries to hijack the main page, block it unless it's our core player domain
+                if (request.isForMainFrame()) {
+                    if (!url.contains("videasy") && !url.contains("zxcstream") && !url.contains("vidlink")) {
+                        return true;
+                    }
+                }
+                // Allow sub-frames (the video CDNs like vidsrc, rabbitstream, etc.) to load
+                return false;
             }
 
             @Override
@@ -364,7 +361,6 @@ public class PlayerActivity extends AppCompatActivity {
                     // 1. Aggressive CSS to hide all ad-related elements
                     "var s=document.createElement('style');" +
                     "s.textContent='" +
-                    "iframe:not([src*=\"vidrock\"]):not([src*=\"zxcstream\"]):not([src*=\"vidlink\"]):not([src*=\"rabbitstream\"]):not([src*=\"megacloud\"]):not([src*=\"rapid-cloud\"]):not([src*=\"dokicloud\"]):not([src*=\"mcloud\"]):not([src*=\"onhiflix\"])," +
                     "div[class*=\"ad-\"],div[class*=\"ads-\"],div[class*=\"ad_\"],div[id*=\"ad-\"],div[id*=\"ad_\"]," +
                     "div[class*=\"popup\"],div[class*=\"modal\"]:not([class*=\"video\"]):not([class*=\"player\"])," +
                     "div[class*=\"overlay\"]:not([class*=\"video\"]):not([class*=\"player\"]):not([class*=\"control\"])," +
@@ -377,21 +373,9 @@ public class PlayerActivity extends AppCompatActivity {
                     "div[style*=\"position: fixed\"]:not([class*=\"video\"]):not([class*=\"player\"]):not([class*=\"control\"])" +
                     "{display:none!important;pointer-events:none!important;}';" +
                     "document.head.appendChild(s);" +
-                    "setInterval(function(){" +
-                    "document.querySelectorAll('iframe').forEach(function(f){" +
-                    "var src=f.src||'';" +
-                    "if(src&&!src.match(/vidrock|zxcstream|vidlink|rabbitstream|megacloud|rapid-cloud|dokicloud|mcloud|onhiflix|blob:/i)){" +
-                    "f.remove();" +
-                    "}" +
-                    "});" +
-                    // Remove high z-index overlays that aren't part of the video player
-                    "document.querySelectorAll('div').forEach(function(d){" +
-                    "var z=parseInt(window.getComputedStyle(d).zIndex)||0;" +
-                    "if(z>9000&&!d.querySelector('video')&&!d.className.match(/player|video|control|progress/i)){" +
-                    "d.remove();" +
-                    "}" +
-                    "});" +
-                    "},2000);" +
+                    "var f_s=document.createElement('style');" +
+                    "f_s.textContent='body,html{margin:0!important;padding:0!important;overflow:hidden!important;width:100%!important;height:100%!important;background:#000!important;} iframe{position:absolute!important;top:0!important;left:0!important;width:100vw!important;height:100vh!important;border:none!important;z-index:999999!important;}';" +
+                    "document.head.appendChild(f_s);" +
                     "})()";
                 view.evaluateJavascript(adBlockScript, null);
             }
@@ -442,12 +426,12 @@ public class PlayerActivity extends AppCompatActivity {
                 return base + "/movie/" + media.id + "?autoplay=true";
             }
         } else {
-            // Server 2: VidRock
-            String base = "https://vidrock.net";
+            // Server 2: Videasy
+            String base = "https://player.videasy.net";
             if (media.isTv()) {
-                return base + "/tv/" + media.id + "/" + season + "/" + episode + "?autoplay=true&download=false";
+                return base + "/tv/" + media.id + "/" + season + "/" + episode + "?color=E50914&nextEpisode=true&episodeSelector=true&autoplayNextEpisode=true&autoplay=true";
             } else {
-                return base + "/movie/" + media.id + "?autoplay=true&download=false";
+                return base + "/movie/" + media.id + "?color=E50914&autoplay=true";
             }
         }
     }

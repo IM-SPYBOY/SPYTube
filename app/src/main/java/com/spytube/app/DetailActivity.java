@@ -859,7 +859,7 @@ public class DetailActivity extends AppCompatActivity {
         if (serverRadioGroup != null) {
             int checkedId = serverRadioGroup.getCheckedRadioButtonId();
             if (checkedId == R.id.server_zxcstream) serverIndex = 0;
-            else if (checkedId == R.id.server_vidrock) serverIndex = 1;
+            else if (checkedId == R.id.server_videasy) serverIndex = 1;
             else if (checkedId == R.id.server_vidlink) serverIndex = 2;
             else if (checkedId == R.id.server_cinefy) serverIndex = 3;
         }
@@ -868,6 +868,7 @@ public class DetailActivity extends AppCompatActivity {
             String title = media.title != null ? media.title : media.name;
             Intent intent = new Intent(this, CinefyPlayerActivity.class);
             intent.putExtra("searchTitle", title);
+            intent.putExtra("mediaId", String.valueOf(media.id));
             intent.putExtra("isTv", media.isTv());
             intent.putExtra("season", selectedSeason);
             intent.putExtra("episode", selectedEpisode);
@@ -1047,13 +1048,20 @@ public class DetailActivity extends AppCompatActivity {
                     return;
                 }
 
+                // Sort by file size descending (largest first)
+                java.util.Collections.sort(links, (a, b) -> {
+                    long sizeA = parseSizeToBytes(a.getSize());
+                    long sizeB = parseSizeToBytes(b.getSize());
+                    return Long.compare(sizeB, sizeA);
+                });
+
                 String finalName = searchTitle;
                 if (isTv && season != null && episode != null) {
                     finalName = "S" + season + " E" + episode + " • " + searchTitle;
                 }
                 final String dialogTitle = finalName; // must be effectively final
 
-                runOnUiThread(() -> showDownloadQualityPicker(dialogTitle, links, posterUrl));
+                runOnUiThread(() -> showDownloadQualityPicker(dialogTitle, links, posterUrl, searchTitle, tmdbId, isTv, season, episode));
 
             } catch (Exception e) {
                 android.util.Log.e("Download", "Download search failed", e);
@@ -1066,32 +1074,63 @@ public class DetailActivity extends AppCompatActivity {
     private void showDownloadQualityPicker(
             String title,
             java.util.List<com.spytube.app.models.HiCineDownloadLink> links,
-            String posterUrl
+            String posterUrl,
+            String searchTitle,
+            String tmdbId,
+            boolean isTv,
+            Integer season,
+            Integer episode
     ) {
-        String[] items = new String[links.size()];
+        com.google.android.material.bottomsheet.BottomSheetDialog dialog = new com.google.android.material.bottomsheet.BottomSheetDialog(this);
+        android.view.View view = getLayoutInflater().inflate(R.layout.dialog_quality_picker, null);
+        dialog.setContentView(view);
+        
+        try {
+            ((android.view.View) view.getParent()).setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        } catch (Exception ignored) {}
+
+        TextView titleView = view.findViewById(R.id.dialog_title);
+
+        LinearLayout container = view.findViewById(R.id.links_container);
+
         for (int i = 0; i < links.size(); i++) {
             com.spytube.app.models.HiCineDownloadLink link = links.get(i);
-            items[i] = link.getQuality() + "  •  " + link.getSize();
+            
+            android.view.View itemView = getLayoutInflater().inflate(R.layout.item_download_quality, container, false);
+            
+            TextView qualityText = itemView.findViewById(R.id.text_quality);
+            TextView sizeText = itemView.findViewById(R.id.text_size);
+            TextView descText = itemView.findViewById(R.id.text_desc);
+            
+            qualityText.setText(link.getQuality() != null ? link.getQuality() : "Unknown");
+            sizeText.setText(link.getSize() != null ? link.getSize() : "");
+            
+            String desc = link.getDescription();
+            if (desc != null && !desc.trim().isEmpty()) {
+                descText.setText(desc.trim());
+                descText.setVisibility(android.view.View.VISIBLE);
+            } else {
+                descText.setVisibility(android.view.View.GONE);
+            }
+            
+            itemView.setOnClickListener(v -> {
+                dialog.dismiss();
+                Toast.makeText(this, "Starting download: " + link.getQuality(), Toast.LENGTH_SHORT).show();
+
+                new Thread(() -> {
+                    try {
+                        com.spytube.app.models.HiCineDownloadManager.INSTANCE
+                                .startDownloadBlocking(this, link, title, posterUrl, searchTitle, tmdbId, isTv, season != null ? season : 0, episode != null ? episode : 0);
+                    } catch (Exception e) {
+                        runOnUiThread(() -> Toast.makeText(this, "Download failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                    }
+                }).start();
+            });
+            
+            container.addView(itemView);
         }
 
-        new android.app.AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog)
-                .setTitle("⬇ Download: " + title)
-                .setItems(items, (dialog, which) -> {
-                    com.spytube.app.models.HiCineDownloadLink selected = links.get(which);
-                    Toast.makeText(this, "Starting download: " + selected.getQuality(), Toast.LENGTH_SHORT).show();
-
-                    // Run the 3-step download pipeline in background
-                    new Thread(() -> {
-                        try {
-                            com.spytube.app.models.HiCineDownloadManager.INSTANCE
-                                    .startDownloadBlocking(this, selected, title, posterUrl);
-                        } catch (Exception e) {
-                            runOnUiThread(() -> Toast.makeText(this, "Download failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-                        }
-                    }).start();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        dialog.show();
     }
 
     
@@ -1147,7 +1186,12 @@ public class DetailActivity extends AppCompatActivity {
                 runOnUiThread(() -> showDownloadQualityPicker(
                         searchTitle + " S" + seasonNum + "E" + episodeNum,
                         finalLinks,
-                        posterUrl
+                        posterUrl,
+                        searchTitle,
+                        (media != null) ? String.valueOf(media.id) : "",
+                        true,
+                        seasonNum,
+                        episodeNum
                 ));
 
             } catch (Exception e) {
@@ -1236,5 +1280,20 @@ public class DetailActivity extends AppCompatActivity {
             trailerWebView = null;
         }
         super.onDestroy();
+    }
+
+    private static long parseSizeToBytes(String sizeStr) {
+        if (sizeStr == null || sizeStr.isEmpty()) return 0;
+        String clean = sizeStr.trim().toUpperCase();
+        String numStr = clean.replaceAll("[^0-9.]", "");
+        try {
+            double value = Double.parseDouble(numStr);
+            if (clean.contains("GB")) return (long) (value * 1024 * 1024 * 1024);
+            if (clean.contains("MB")) return (long) (value * 1024 * 1024);
+            if (clean.contains("KB")) return (long) (value * 1024);
+            return (long) value;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }

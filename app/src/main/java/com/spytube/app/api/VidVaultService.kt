@@ -3,14 +3,12 @@ package com.spytube.app.api
 import com.spytube.app.models.VidVaultRequest
 import com.spytube.app.models.VidVaultResponse
 import com.spytube.app.models.VidVaultTokenResponse
-import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
-import java.util.concurrent.TimeUnit
 
 interface VidVaultService {
     @GET("get-token")
@@ -35,18 +33,12 @@ interface VidVaultService {
 object VidVaultClient {
     private const val BASE_URL = "https://vidvault.ru/api/"
 
-    private val okHttp = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .addInterceptor { chain ->
-            val request = chain.request().newBuilder()
-                .addHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36")
-                .addHeader("Referer", "https://vidvault.ru/")
-                .addHeader("Origin", "https://vidvault.ru")
-                .build()
-            chain.proceed(request)
-        }
-        .build()
+    // Uses bypass client with VidVault-specific headers (Referer + Origin required by their server)
+    private val okHttp = IspBypassClient.clientWithHeaders(
+        "User-Agent" to "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+        "Referer" to "https://vidvault.ru/",
+        "Origin" to "https://vidvault.ru"
+    )
 
     val service: VidVaultService by lazy {
         Retrofit.Builder()
@@ -119,13 +111,13 @@ object VidVaultClient {
                 }
                 val encodedName = java.net.URLEncoder.encode(fileLabel, "UTF-8")
 
-                val wrapper = parsed.extractData?.dataWrapper
+                val wrapper = parsed.extractData?.dataWrapper ?: parsed.mp4Data?.dataWrapper
                 // Check for 403 or other extraction errors
                 if (wrapper?.code != 0 && wrapper?.code != null) {
                     lastError = "Proxy Code: ${wrapper.code} Msg: ${wrapper.message}"
                 }
-                if (parsed.extractData == null) {
-                    lastError = "Response missing extractData. JSON length: ${jsonRaw.length}"
+                if (wrapper == null) {
+                    lastError = "Response missing extractData/mp4Data. JSON length: ${jsonRaw.length}"
                 }
 
                 val streams = wrapper?.data?.streams ?: emptyList()

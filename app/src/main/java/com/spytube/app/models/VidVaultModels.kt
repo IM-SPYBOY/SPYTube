@@ -15,12 +15,18 @@ data class VidVaultRequest(
 
 data class VidVaultResponse(
     @SerializedName("extractData") val extractData: VidVaultExtractData?,
+    @SerializedName("mp4Data") val mp4Data: VidVaultMp4Data?,
     @SerializedName("mkvData") val mkvData: VidVaultMkvData?
 )
 
 data class VidVaultExtractData(
     @SerializedName("success") val success: Boolean?,
     @SerializedName("data") val dataWrapper: VidVaultExtractDataWrapper?
+)
+
+data class VidVaultMp4Data(
+    @SerializedName("success") val success: Boolean?,
+    @SerializedName("downloadInfo") val dataWrapper: VidVaultExtractDataWrapper?
 )
 
 data class VidVaultExtractDataWrapper(

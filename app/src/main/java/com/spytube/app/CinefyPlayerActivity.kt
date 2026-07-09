@@ -21,7 +21,6 @@ import android.webkit.WebResourceResponse
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.spytube.app.api.CinefyClient
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
 
@@ -86,6 +85,7 @@ class CinefyPlayerActivity : AppCompatActivity() {
 
         webView = findViewById(R.id.webview)
         progressBar = findViewById(R.id.progress)
+        progressBar.visibility = View.GONE // Hide extra loading screen
         layoutBrightness = findViewById(R.id.layout_brightness)
         viewBrightnessProgress = findViewById(R.id.view_brightness_progress)
         layoutVolume = findViewById(R.id.layout_volume)
@@ -181,19 +181,61 @@ class CinefyPlayerActivity : AppCompatActivity() {
             }
         }, "AndroidBridge")
 
-        // Store params for injection after page loads
-        webView.tag = mapOf(
-            "mode" to if (searchTitle != null) "search" else "direct",
-            "provider" to provider, "mediaId" to mediaId, "title" to title,
-            "searchTitle" to (searchTitle ?: ""),
-            "showId" to showId, "seasonId" to seasonId,
-            "season" to season, "episode" to episode, "isTv" to isTv,
-            "resumePosition" to intent.getFloatExtra("resumePosition", 0f),
-            "localUri" to (intent.getStringExtra("localUri") ?: "")
-        )
-        playTitle = title
-
-        webView.loadUrl("file:///android_asset/cinefy_player.html")
+        if (localUri.isNotEmpty()) {
+            webView.tag = mapOf(
+                "title" to title,
+                "resumePosition" to intent.getFloatExtra("resumePosition", 0f),
+                "localUri" to localUri
+            )
+        } else {
+            // Save cache record
+            com.spytube.app.models.CinefyCache.save(this, title, "peachify", mediaId, isTv, season, episode)
+            webView.tag = mapOf(
+                "mediaId" to mediaId, 
+                "title" to title,
+                "season" to season, 
+                "episode" to episode, 
+                "isTv" to isTv,
+                "resumePosition" to intent.getFloatExtra("resumePosition", 0f),
+                "localUri" to localUri
+            )
+        }
+        
+        try {
+            var htmlData = assets.open("cinefy_player.html").bufferedReader().use { it.readText() }
+            
+            val resumePos = intent.getFloatExtra("resumePosition", 0f)
+            val mid = mediaId.replace("'", "\\'")
+            val ttl = title.replace("\\", "\\\\").replace("'", "\\'")
+            
+            if (localUri.isNotEmpty()) {
+                htmlData = htmlData.replace(
+                    "var _t = '', _m = '', _sn = 0, _ep = 0, _tv = false, _resumeTime = 0;",
+                    "var _t = '$ttl'; var _resumeTime = $resumePos;"
+                ).replace(
+                    "// For local files",
+                    "document.getElementById('local_video').classList.remove('hide');\n" +
+                    "document.getElementById('local_video').src = '$localUri';\n" +
+                    "if (_resumeTime > 0) { document.getElementById('local_video').currentTime = _resumeTime; }\n" +
+                    "document.getElementById('local_video').play();\n" +
+                    "// For local files"
+                )
+            } else {
+                htmlData = htmlData.replace(
+                    "var _t = '', _m = '', _sn = 0, _ep = 0, _tv = false, _resumeTime = 0;",
+                    "var _t = '$ttl'; var _m = '$mid'; var _sn = $season; var _ep = $episode; var _tv = $isTv; var _resumeTime = $resumePos;"
+                ).replace(
+                    "function startPlayer() {",
+                    "startPlayer();\n  function startPlayer() {"
+                ).replace(
+                    "autoPlay=1", "autoPlay=true"
+                )
+            }
+            
+            webView.loadDataWithBaseURL("https://peachify.top/", htmlData, "text/html", "UTF-8", null)
+        } catch (e: Exception) {
+            android.util.Log.e("CinefyPlayer", "Failed to load player HTML", e)
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -213,7 +255,7 @@ class CinefyPlayerActivity : AppCompatActivity() {
             databasePath = applicationContext.getDir("webview_db", MODE_PRIVATE).path
             @Suppress("DEPRECATION")
             setRenderPriority(WebSettings.RenderPriority.HIGH)
-            cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
+            cacheMode = WebSettings.LOAD_DEFAULT
             allowFileAccess = true
             allowContentAccess = true
             loadWithOverviewMode = false
@@ -222,8 +264,11 @@ class CinefyPlayerActivity : AppCompatActivity() {
             builtInZoomControls = false
             displayZoomControls = false
             mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-            userAgentString = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+            // Desktop user agent to bypass streaming player's internal mobile autoplay blocks
+            userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            @Suppress("DEPRECATION")
             allowUniversalAccessFromFileURLs = true
+            @Suppress("DEPRECATION")
             allowFileAccessFromFileURLs = true
         }
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
@@ -234,87 +279,13 @@ class CinefyPlayerActivity : AppCompatActivity() {
                 return false
             }
 
-            // Route ALL external requests through DohTunnel (shared DoH + connection pool)
-            // Skip: local files, video segments (.ts) for native speed
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                val url = request.url.toString()
-                // Skip local assets
-                if (url.startsWith("file://") || url.startsWith("data:")) return super.shouldInterceptRequest(view, request)
-                if (url.endsWith(".ts") || url.contains(".ts?")) return super.shouldInterceptRequest(view, request)
-                try {
-                    val okReq = okhttp3.Request.Builder()
-                        .url(url)
-                        .apply { request.requestHeaders?.forEach { (k, v) -> addHeader(k, v) } }
-                        .build()
-                    val resp = com.spytube.app.api.DohTunnel.client.newCall(okReq).execute()
-                    val ct = resp.header("Content-Type") ?: "application/octet-stream"
-                    val mime = ct.split(";").first().trim()
-                    val enc = if (ct.contains("charset=")) ct.substringAfter("charset=").trim() else "UTF-8"
-                    return WebResourceResponse(
-                        mime, enc, resp.code, resp.message.ifEmpty { "OK" },
-                        resp.headers.toMultimap().mapValues { it.value.joinToString(", ") },
-                        resp.body?.byteStream()
-                    )
-                } catch (e: Exception) {
-                    android.util.Log.w("CinefyPlayer", "DoH tunnel miss: ${e.message}")
-                    return super.shouldInterceptRequest(view, request)
-                }
+                return super.shouldInterceptRequest(view, request)
             }
 
 
             override fun onPageFinished(view: WebView, url: String) {
-                android.util.Log.d("CinefyPlayer", "onPageFinished URL=$url tag=${view.tag != null}")
-                if (!url.contains("cinefy_player")) return
-                val tag = view.tag as? Map<*, *> ?: return
-                val mode = tag["mode"] as? String ?: "direct"
-                val prov = (tag["provider"] as? String ?: "").replace("'", "\\'")
-                val mid = (tag["mediaId"] as? String ?: "").replace("'", "\\'")
-                val ttl = (tag["title"] as? String ?: "").replace("\\", "\\\\").replace("'", "\\'")
-                val st = (tag["searchTitle"] as? String ?: "").replace("\\", "\\\\").replace("'", "\\'")
-                val sid = (tag["showId"] as? String ?: "").replace("'", "\\'")
-                val ssid = (tag["seasonId"] as? String ?: "").replace("'", "\\'")
-                val sn = tag["season"] as? Int ?: 0
-                val ep = tag["episode"] as? Int ?: 0
-                val tv = tag["isTv"] as? Boolean ?: false
-
-                view.tag = null
-
-                val resumePos = tag["resumePosition"] as? Float ?: 0f
-                val localUri = tag["localUri"] as? String ?: ""
-
-                if (localUri.isNotEmpty()) {
-                    view.evaluateJavascript("""
-                        _t = '$ttl';
-                        _resumeTime = $resumePos;
-                        document.getElementById('tt').textContent = _t;
-                        document.getElementById('spinner').classList.add('hide');
-                        V.src = '$localUri';
-                        V.play();
-                    """.trimIndent(), null)
-                } else if (mode == "search") {
-                    view.evaluateJavascript("""
-                        _t = '$ttl';
-                        _tv = $tv;
-                        _sn = $sn;
-                        _ep = $ep;
-                        _resumeTime = $resumePos;
-                        searchAndPlay('$st', $tv, $sn, $ep);
-                    """.trimIndent(), null)
-                } else {
-                    view.evaluateJavascript("""
-                        _p = '$prov';
-                        _m = '$mid';
-                        _t = '$ttl';
-                        _si = '$sid';
-                        _ss = '$ssid';
-                        _sn = $sn;
-                        _ep = $ep;
-                        _tv = $tv;
-                        _resumeTime = $resumePos;
-                        startPlayer();
-                    """.trimIndent(), null)
-                }
-
+                android.util.Log.d("CinefyPlayer", "onPageFinished URL=$url")
                 handler.postDelayed({ progressBar.visibility = View.GONE }, 3000)
             }
 

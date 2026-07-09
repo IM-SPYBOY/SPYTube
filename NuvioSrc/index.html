@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuvio - Media Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        *:focus,
+        *:active {
+            outline: none !important;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 4rem 2rem;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 1200px;
+        }
+
+        .hero-logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .hero-brand-text {
+            height: clamp(4rem, 15vw, 10rem);
+            width: auto;
+            max-width: 90vw;
+            margin: 0 auto 2rem auto;
+            display: block;
+            filter: brightness(0) invert(1);
+        }
+
+        .hero h1 {
+            font-size: clamp(5rem, 20vw, 14rem);
+            font-weight: 900;
+            letter-spacing: -0.06em;
+            line-height: 0.9;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .hero-tagline {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 4rem;
+            letter-spacing: 0.02em;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 100px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .download-btn:hover {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.3);
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            transition: color 0.3s;
+        }
+
+        .scroll-indicator:hover {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 10rem 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .section-title {
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            line-height: 0.95;
+            margin-bottom: 6rem;
+            text-transform: uppercase;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 4rem 3rem;
+        }
+
+        .feature-item {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+        }
+
+        .feature-number {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 1rem;
+            letter-spacing: 0.1em;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .feature-desc {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.7;
+        }
+
+        /* Screenshots Section */
+        .screenshots {
+            padding: 10rem 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .screenshots-grid {
+            column-count: 1;
+            column-gap: 2rem;
+        }
+
+        @media (min-width: 640px) {
+            .screenshots-grid {
+                column-count: 2;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .screenshots-grid {
+                column-count: 3;
+            }
+        }
+
+        .screenshot {
+            break-inside: avoid;
+            margin-bottom: 2rem;
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: transform 0.4s ease;
+        }
+
+        .screenshot:hover {
+            transform: translateY(-8px);
+        }
+
+        .screenshot img {
+            width: 100%;
+            height: auto;
+            display: block;
+            opacity: 0.9;
+            transition: opacity 0.3s;
+        }
+
+        .screenshot:hover img {
+            opacity: 1;
+        }
+
+
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 12px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -3rem;
+            right: 0;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        /* iOS Modal */
+        .ios-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .ios-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .ios-modal-content {
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 440px;
+            width: 90%;
+        }
+
+        .ios-modal-header {
+            margin-bottom: 2rem;
+        }
+
+        .ios-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .ios-modal-subtitle {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .ios-install-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .ios-install-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .ios-install-option:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .ios-option-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .ios-option-icon img {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .ios-option-content {
+            flex: 1;
+        }
+
+        .ios-option-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .ios-option-description {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .ios-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .ios-modal-close:hover {
+            color: #fff;
+        }
+
+        .copy-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            color: #000;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            z-index: 3000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .copy-feedback.show {
+            opacity: 1;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 8rem 2rem 4rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3rem;
+        }
+
+        .footer-credits {
+            text-align: center;
+        }
+
+        .footer-credits-title {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .credits-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .credit-logo {
+            height: 28px;
+            width: auto;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .credit-logo:hover {
+            opacity: 0.8;
+        }
+
+        .stremio-logos {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-tagline {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .footer-link:hover {
+            color: #fff;
+        }
+
+        .footer-link img {
+            width: 18px;
+            height: 18px;
+            filter: invert(1);
+            opacity: 0.6;
+        }
+
+        .footer-link[href*="discord"] img {
+            filter: brightness(0) invert(1);
+        }
+
+        .footer-copyright {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.2);
+            text-align: center;
+        }
+
+        /* Privacy Policy */
+        .privacy-policy {
+            min-height: 100vh;
+            padding: 4rem 2rem;
+            display: none;
+        }
+
+        .privacy-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 100px;
+            padding: 0.75rem 1.5rem;
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 4rem;
+        }
+
+        .privacy-back-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        .privacy-content h1 {
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .last-updated {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.875rem;
+            margin-bottom: 4rem;
+        }
+
+        .privacy-section {
+            margin-bottom: 3rem;
+            max-width: 700px;
+        }
+
+        .privacy-section h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .privacy-section p {
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .privacy-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .privacy-section li {
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.8;
+            padding-left: 1rem;
+            position: relative;
+            margin-bottom: 0.5rem;
+        }
+
+        .privacy-section li::before {
+            content: '—';
+            position: absolute;
+            left: 0;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .privacy-section a {
+            color: #fff;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .privacy-section a:hover {
+            text-decoration: none;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1.5rem;
+            }
+
+            .hero {
+                padding: 3rem 1.5rem;
+            }
+
+            .hero-logo {
+                width: 80px;
+                height: 80px;
+            }
+
+            .hero-tagline {
+                margin-bottom: 3rem;
+            }
+
+            .download-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .download-btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+
+            .features,
+            .screenshots {
+                padding: 6rem 1.5rem;
+            }
+
+            .section-title {
+                margin-bottom: 4rem;
+            }
+
+            .features-grid {
+                gap: 3rem;
+            }
+
+            .footer {
+                padding: 6rem 1.5rem 3rem;
+            }
+
+            .footer-links {
+                gap: 1.5rem;
+            }
+
+            .ios-modal-content {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: clamp(3.5rem, 18vw, 6rem);
+            }
+
+            .section-title {
+                font-size: clamp(2.5rem, 12vw, 4rem);
+            }
+
+            .screenshots-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .privacy-content h1 {
+                font-size: clamp(2.5rem, 12vw, 4rem);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <section class="hero">
+        <div class="hero-content">
+            <img src="assets/splash-icon.png" alt="Nuvio" class="hero-logo">
+            <img src="assets/nuviotext.png" alt="NUVIO" class="hero-brand-text">
+            <p class="hero-tagline">The Ultimate Open-Source Media Experience</p>
+
+            <div class="download-buttons">
+                <a href="https://github.com/tapframe/NuvioStreaming/releases" class="download-btn">
+                    Download for Android
+                </a>
+                <a href="#" class="download-btn" id="ios-install-btn">
+                    Install for iOS
+                </a>
+            </div>
+        </div>
+
+        <a href="#features" class="scroll-indicator">Scroll</a>
+    </section>
+
+    <!-- iOS Installation Modal -->
+    <div id="ios-modal" class="ios-modal">
+        <div class="ios-modal-content">
+            <button class="ios-modal-close" id="ios-modal-close">×</button>
+            <div class="ios-modal-header">
+                <h3 class="ios-modal-title">Install on iOS</h3>
+                <p class="ios-modal-subtitle">Choose your preferred method</p>
+            </div>
+            <div class="ios-install-options">
+                <a href="https://testflight.apple.com/join/QkKMGRqp" class="ios-install-option">
+                    <div class="ios-option-icon">
+                        <img src="https://upload.wikimedia.org/wikipedia/fr/b/bc/TestFlight-icon.png" alt="TestFlight">
+                    </div>
+                    <div class="ios-option-content">
+                        <div class="ios-option-title">TestFlight (Recommended)</div>
+                        <div class="ios-option-description">Apple's official beta testing platform</div>
+                    </div>
+                </a>
+
+                <a href="https://github.com/tapframe/NuvioStreaming/releases" class="ios-install-option">
+                    <div class="ios-option-icon">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjNjY2NjY2Ii8+Cjwvc3ZnPgo="
+                            alt="Download">
+                    </div>
+                    <div class="ios-option-content">
+                        <div class="ios-option-title">Direct Download</div>
+                        <div class="ios-option-description">Download the IPA file</div>
+                    </div>
+                </a>
+
+                <a href="https://tinyurl.com/NuvioAltstore" class="ios-install-option">
+                    <div class="ios-option-icon">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/AltStore_logo.png" alt="AltStore">
+                    </div>
+                    <div class="ios-option-content">
+                        <div class="ios-option-title">AltStore</div>
+                        <div class="ios-option-description">One-click installation</div>
+                    </div>
+                </a>
+
+                <a href="https://tinyurl.com/NuvioSidestore" class="ios-install-option">
+                    <div class="ios-option-icon">
+                        <img src="https://github.com/SideStore/assets/blob/main/icon.png?raw=true" alt="SideStore">
+                    </div>
+                    <div class="ios-option-content">
+                        <div class="ios-option-title">SideStore</div>
+                        <div class="ios-option-description">One-click installation</div>
+                    </div>
+                </a>
+
+                <div class="ios-install-option" id="copy-url">
+                    <div class="ios-option-icon">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggNUMzIDUgMyA1IDMgMTBWMTRDMyAxOSAzIDE5IDggMTlIMTZDMjEgMTkgMjEgMTkgMjEgMTRWMTBDMjEgNSAyMSA1IDE2IDVIOFoiIHN0cm9rZT0iIzY2NjY2NiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHBhdGggZD0iTTEwIDEySDE4LjAxIiBzdHJva2U9IiM2NjY2NjYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0xNCAxMkgxNC4wMSIgc3Ryb2tlPSIjNjY2NjY2IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K"
+                            alt="Copy">
+                    </div>
+                    <div class="ios-option-content">
+                        <div class="ios-option-title">Copy Source URL</div>
+                        <div class="ios-option-description">Add manually to your app</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="copy-feedback" class="copy-feedback">Copied</div>
+
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Features</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-number">01</div>
+                    <h3 class="feature-title">Stremio Addon Integration</h3>
+                    <p class="feature-desc">Supports user-installed Stremio addons for metadata and source
+                        integration.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-number">02</div>
+                    <h3 class="feature-title">Advanced Rating System</h3>
+                    <p class="feature-desc">Comprehensive ratings from IMDB, TMDB, Rotten Tomatoes, and Metacritic for
+                        informed viewing.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-number">03</div>
+                    <h3 class="feature-title">Deep Customization</h3>
+                    <p class="feature-desc">Extensive customization including themes, player settings, and personalized
+                        discovery.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-number">04</div>
+                    <h3 class="feature-title">Watch Progress Tracking</h3>
+                    <p class="feature-desc">Seamless progress sync across devices with Trakt.tv integration and local
+                        history.</p>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-number">05</div>
+                    <h3 class="feature-title">Multi-Platform</h3>
+                    <p class="feature-desc">Available on iOS and Android with consistent experience and cross-device
+                        sync.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="screenshots">
+        <div class="container">
+            <h2 class="section-title">In Action</h2>
+            <div class="screenshots-grid">
+                <div class="screenshot">
+                    <img src="screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-08-27 at 21.08.32-portrait.png"
+                        alt="Home Screen" loading="lazy">
+
+                </div>
+                <div class="screenshot">
+                    <img src="screenshots/WhatsApp Image 2025-09-02 at 00.24.31-portrait.png" alt="Details"
+                        loading="lazy">
+
+                </div>
+                <div class="screenshot">
+                    <img src="screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-08-27 at 21.09.43-portrait.png"
+                        alt="Discover" loading="lazy">
+
+                </div>
+                <div class="screenshot">
+                    <img src="screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-08-27 at 21.10.14-portrait.png"
+                        alt="Library" loading="lazy">
+
+                </div>
+                <div class="screenshot">
+                    <img src="screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-08-27 at 21.12.41-landscape.png"
+                        alt="Player" loading="lazy">
+
+                </div>
+                <div class="screenshot">
+                    <img src="screenshots/Simulator Screenshot - iPhone 16 Pro - 2025-08-27 at 21.13.36-landscape.png"
+                        alt="Player" loading="lazy">
+
+                </div>
+                <div class="screenshot">
+                    <img src="screenshots/ratingscreen-portrait.png" alt="Ratings" loading="lazy">
+
+                </div>
+                <div class="screenshot">
+                    <img src="screenshots/seasonandepisode-portrait.png" alt="Episodes" loading="lazy">
+
+                </div>
+                <div class="screenshot">
+                    <img src="screenshots/search-portrait.png" alt="Search" loading="lazy">
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Privacy Policy Section -->
+    <section id="privacy-policy" class="privacy-policy">
+        <div class="container">
+            <div class="privacy-content">
+                <button class="privacy-back-btn" onclick="hidePrivacyPolicy()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                    Back
+                </button>
+                <h1>Privacy</h1>
+                <p class="last-updated">Last updated: February 5, 2026</p>
+
+                <div class="privacy-section">
+                    <h2>No Account Sync</h2>
+                    <p>Nuvio operates entirely offline regarding user data. We do not have servers to store your
+                        account, preferences, or viewing history. All data is stored locally on your device.</p>
+                </div>
+
+                <div class="privacy-section">
+                    <h2>Data Storage</h2>
+                    <p>We use React Native MMKV for high-performance local storage including:</p>
+                    <ul>
+                        <li>Library and favorites</li>
+                        <li>Watch history and progress</li>
+                        <li>App settings and customization</li>
+                    </ul>
+                    <p>Since data is stored only on your device, you are responsible for backing it up.</p>
+                </div>
+
+                <div class="privacy-section">
+                    <h2>Third-Party Services</h2>
+                    <p>Nuvio integrates with external services:</p>
+                    <ul>
+                        <li>TMDB for metadata like posters and cast info</li>
+                        <li>Trakt.tv (optional) for watch history sync</li>
+                        <li>Sentry for crash reporting (privacy-first defaults, no PII by default)</li>
+                        <li>PostHog for optional analytics (disabled by default)</li>
+                    </ul>
+                </div>
+
+                <div class="privacy-section">
+                    <h2>Telemetry & Analytics</h2>
+                    <p>Nuvio includes optional telemetry to improve stability and user experience:</p>
+                    <ul>
+                        <li><strong>Sentry</strong> captures crash reports and errors. Personal data (IP, device identifiers)
+                            is disabled by default and can be enabled only if you opt in.</li>
+                        <li><strong>PostHog</strong> analytics are disabled by default and require explicit opt-in.</li>
+                        <li><strong>Session Replay</strong> is disabled by default and can be enabled only if you opt in.</li>
+                    </ul>
+                    <p>You can disable all telemetry at any time in the app under <strong>Settings → Privacy & Data</strong>.</p>
+                </div>
+
+                <div class="privacy-section">
+                    <h2>Content Disclaimer</h2>
+                    <p>Nuvio is a media player and aggregator. We do not host any content. All video content is
+                        provided by user-installed addons.</p>
+                </div>
+
+                <div class="privacy-section">
+                    <h2>Open Source</h2>
+                    <p>Nuvio is open-source. Review our code on <a href="https://github.com/tapframe/NuvioStreaming"
+                            target="_blank">GitHub</a>.</p>
+                </div>
+
+                <div class="privacy-section">
+                    <h2>Contact</h2>
+                    <p>Questions? Reach out via <a href="https://github.com/tapframe/NuvioStreaming/issues"
+                            target="_blank">GitHub Issues</a>.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Legal Section -->
+    <section id="legal" class="privacy-policy">
+        <div class="container">
+            <div class="privacy-content">
+                <button class="privacy-back-btn" onclick="hideAllDetailSections()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                    Back
+                </button>
+                <h1>Legal & Disclaimer</h1>
+                <p class="last-updated">Last updated: January 2026</p>
+
+                <div class="privacy-section">
+                    <h2>Nature of the Application</h2>
+                    <p>Nuvio is a media player and metadata management application. It acts solely as a client-side
+                        interface for browsing publicly available metadata (movies, TV shows, etc.) and playing media
+                        files
+                        provided by the user or third-party extensions. Nuvio itself does not host, store, distribute,
+                        or
+                        index any media content.</p>
+                </div>
+
+                <div class="privacy-section">
+                    <h2>Third-Party Extensions</h2>
+                    <p>Nuvio uses an extensible architecture that allows users to install third-party plugins
+                        (extensions).
+                        These extensions are developed and maintained by independent developers not affiliated with
+                        Nuvio.
+                        We have no control over, and assume no responsibility for, the content, legality, or
+                        functionality
+                        of any third-party extension.</p>
+                </div>
+
+                <div class="privacy-section">
+                    <h2>User Responsibility</h2>
+                    <p>Users are solely responsible for the extensions they install and the content they access. By
+                        using
+                        this application, you agree to ensure that you have the legal right to access any content you
+                        view
+                        using Nuvio. The developers of Nuvio do not endorse or encourage copyright infringement.</p>
+                </div>
+
+                <div class="privacy-section">
+                    <h2>Copyright & DMCA</h2>
+                    <p>We respect the intellectual property rights of others. Nuvio does not host media content.
+                        If you believe this project's code, assets, or interface infringes your rights, please submit
+                        a notice through the official project contact channels listed on this site and repository.</p>
+                </div>
+
+                <div class="privacy-section">
+                    <h2>No Warranty</h2>
+                    <p>This software is provided "as is", without warranty of any kind, express or implied. In no event
+                        shall the authors or copyright holders be liable for any claim, damages, or other liability
+                        arising
+                        from the use of this software.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-credits">
+                    <div class="footer-credits-title">Powered By</div>
+                    <div class="credits-logos">
+                        <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg"
+                            alt="TMDB" class="credit-logo">
+
+                    </div>
+                </div>
+
+                <p class="footer-tagline">Built with React Native & Expo</p>
+
+                <div class="footer-links">
+                    <a href="https://discord.gg/KVgDTjhA4H" class="footer-link" target="_blank">
+                        <img src="https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/66e3d7f4ef6498ac018f2c55_Symbol.svg"
+                            alt="Discord">
+                        Discord
+                    </a>
+                    <a href="https://github.com/tapframe/NuvioStreaming" class="footer-link" target="_blank">
+                        <img src="https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" alt="GitHub">
+                        GitHub
+                    </a>
+                    <a href="#privacy-policy" class="footer-link" onclick="showSection('privacy-policy')">
+                        Privacy
+                    </a>
+                    <a href="#legal" class="footer-link" onclick="showSection('legal')">
+                        Legal
+                    </a>
+                </div>
+
+                <p class="footer-copyright">© 2026 Nuvio. GNU GPLv3. Free and Open Source.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Screenshot Modal -->
+    <div class="modal-overlay" id="screenshotModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">Close</button>
+            <img class="modal-image" id="modalImage" src="" alt="">
+        </div>
+    </div>
+
+    <script>
+        // Screenshot modal
+        function openModal(imageSrc) {
+            const modal = document.getElementById('screenshotModal');
+            const modalImage = document.getElementById('modalImage');
+            modalImage.src = imageSrc;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('screenshotModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const screenshots = document.querySelectorAll('.screenshot');
+            screenshots.forEach(screenshot => {
+                screenshot.addEventListener('click', function () {
+                    const img = this.querySelector('img');
+                    if (img) openModal(img.src);
+                });
+            });
+
+            document.getElementById('screenshotModal').addEventListener('click', function (e) {
+                if (e.target === this) closeModal();
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeModal();
+            });
+        });
+
+        // iOS Modal
+        document.addEventListener('DOMContentLoaded', function () {
+            const iosInstallBtn = document.getElementById('ios-install-btn');
+            const iosModal = document.getElementById('ios-modal');
+            const iosModalClose = document.getElementById('ios-modal-close');
+            const copyUrlBtn = document.getElementById('copy-url');
+            const copyFeedback = document.getElementById('copy-feedback');
+            const sourceUrl = 'https://raw.githubusercontent.com/tapframe/NuvioStreaming/main/nuvio-source.json';
+
+            iosInstallBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                iosModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            function closeIOSModal() {
+                iosModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            iosModalClose.addEventListener('click', closeIOSModal);
+            iosModal.addEventListener('click', function (e) {
+                if (e.target === iosModal) closeIOSModal();
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && iosModal.classList.contains('active')) closeIOSModal();
+            });
+
+            copyUrlBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                navigator.clipboard.writeText(sourceUrl).then(function () {
+                    copyFeedback.classList.add('show');
+                    setTimeout(() => copyFeedback.classList.remove('show'), 1500);
+                });
+            });
+        });
+
+        // Detail Sections (Privacy, Legal)
+        const detailSections = ['privacy-policy', 'legal'];
+
+        function showSection(sectionId) {
+            // Hide everything except the requested section
+            document.querySelectorAll('body > *:not(#' + sectionId + ')').forEach(el => el.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function hideAllDetailSections() {
+            detailSections.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            // Show main content
+            document.querySelectorAll('body > *').forEach(el => {
+                if (!detailSections.includes(el.id)) el.style.display = '';
+            });
+            window.scrollTo(0, 0);
+        }
+
+        window.addEventListener('popstate', function () {
+            const hash = window.location.hash.substring(1); // remove #
+            if (detailSections.includes(hash)) {
+                showSection(hash);
+            } else {
+                hideAllDetailSections();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const hash = window.location.hash.substring(1);
+            if (detailSections.includes(hash)) {
+                showSection(hash);
+            }
+        });
+    </script>
+</body>
+
+</html>

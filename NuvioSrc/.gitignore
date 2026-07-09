@@ -1,0 +1,109 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+# Un-ignore specific react-native-video source files we patch
+!node_modules/react-native-video/android/src/main/java/com/brentvatne/common/api/SubtitleStyle.kt
+!node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ExoPlayerView.kt
+!node_modules/react-native-video/android/src/main/java/com/brentvatne/exoplayer/ReactExoplayerView.java
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+
+.env*.local
+.env
+# Sentry
+ios/sentry.properties
+android/sentry.properties
+
+# typescript
+*.tsbuildinfo
+plan.md
+release_announcement.md
+ALPHA_BUILD_2_ANNOUNCEMENT.md
+CHANGELOG.md
+.env.local
+# Android build artifacts (but keep source files)
+android/app/build/
+android/build/
+android/.gradle/
+android/app/libs/*.aar
+!android/app/libs/lib-decoder-ffmpeg-release.aar
+!android/app/libs/libmpv-release.aar
+HEATING_OPTIMIZATIONS.md
+# sliderreadme.md
+.cursor/mcp.json
+local-scrapers-repo
+worki.json
+VERSION_UPDATE_README.md
+hackintosh-emulator-fix.sh
+/ota-builds
+src/screens/xavio.md
+/nuvio-providers
+/KSPlayer
+/exobase
+# ffmpegreadme.md
+toast.md
+ffmpegreadme.md
+sliderreadme.md
+bottomsheet.md
+fastimage.md
+
+## Backup directories
+backup_sdk54_upgrade/
+SDK54_UPGRADE_SUMMARY.md
+SDK54_UPGRADE_SUMMARY.md
+build-and-publish-app-releases.sh
+bottomnav.md
+/TrailerServices
+mmkv.md
+fix-android-scroll-lag-summary.md
+server/cache-server
+server/campaign-manager
+server/sync-service
+carousal.md
+node_modules
+expofs.md
+ios/sentry.properties
+android/sentry.properties
+Stremio addons refer
+trakt-docs
+trakt-docss
+
+# Removed submodules (kept locally)
+libmpv-android/
+mpv-android/
+mpvKt/
+
+# Torrent libraries
+LibTorrent/
+iTorrent/
+simkl-docss
+downloader.md
+server
+Deliverables 2
