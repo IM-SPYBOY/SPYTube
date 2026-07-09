@@ -135,9 +135,14 @@ object FourKHDHubClient {
                         else if (rawTitle.contains("720p")) quality = "720p"
                         else if (rawTitle.contains("480p")) quality = "480p"
                         
-                        val sizeBadge = header.select(".badge").firstOrNull { it.text().contains("GB") || it.text().contains("MB") }
-                        val size = sizeBadge?.text() ?: "Unknown"
-                        
+                        var size = "Unknown"
+                        for (badge in header.select(".badge")) {
+                            val bText = badge.text()
+                            if (bText.contains("GB") || bText.contains("MB")) {
+                                size = bText
+                                break
+                            }
+                        }                        
                         links.add(HiCineDownloadLink(
                             workerUrl = directUrl,
                             vcloudUrl = "",
