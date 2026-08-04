@@ -2,7 +2,7 @@
   "url": "https://api.github.com/repos/IM-SPYBOY/SPYTube/releases/295922151",
   "assets_url": "https://api.github.com/repos/IM-SPYBOY/SPYTube/releases/295922151/assets",
   "upload_url": "https://uploads.github.com/repos/IM-SPYBOY/SPYTube/releases/295922151/assets{?name,label}",
-  "html_url": "https://github.com/IM-SPYBOY/SPYTube/releases/tag/v1.3",
+  "html_url": "https://github.com/IM-SPYBOY/SPYTube/releases/tag/v1.5",
   "id": 295922151,
   "author": {
     "login": "IM-SPYBOY",
@@ -26,9 +26,9 @@
     "site_admin": false
   },
   "node_id": "RE_kwDORP6Ga84Ro2nn",
-  "tag_name": "v1.3",
+  "tag_name": "v1.5",
   "target_commitish": "main",
-  "name": "SPYTube v1.3",
+  "name": "SPYTube v1.5",
   "draft": false,
   "immutable": false,
   "prerelease": false,
@@ -70,10 +70,10 @@
       "download_count": 2,
       "created_at": "2026-03-12T00:12:14Z",
       "updated_at": "2026-03-12T00:12:23Z",
-      "browser_download_url": "https://github.com/IM-SPYBOY/SPYTube/releases/download/v1.3/SPYTube.apk"
+      "browser_download_url": "https://github.com/IM-SPYBOY/SPYTube/releases/download/v1.5/SPYTube.apk"
     }
   ],
-  "tarball_url": "https://api.github.com/repos/IM-SPYBOY/SPYTube/tarball/v1.3",
-  "zipball_url": "https://api.github.com/repos/IM-SPYBOY/SPYTube/zipball/v1.3",
-  "body": "SPYTube v1.3 introduces major performance improvements and features:\n- **120fps Support**: Added support for high refresh rate displays (90Hz/120Hz).\n- **Silky Smooth Scrolling**: Added hardware layer caching and Coil memory caching to eliminate stuttering when scrolling through movies.\n- **Improved Glass UI Visibility**: Added a new dark gradient background so the liquid glass effects are clearly visible against the content.\n- **Reduced Battery & Memory Usage**: Optimized image loading and background rendering.\n- **R8 Minification**: Smaller APK size and faster launch times."
+  "tarball_url": "https://api.github.com/repos/IM-SPYBOY/SPYTube/tarball/v1.5",
+  "zipball_url": "https://api.github.com/repos/IM-SPYBOY/SPYTube/zipball/v1.5",
+  "body": "SPYTube v1.5 — Major streaming \u0026 download overhaul:\n- **Peachify Player**: New primary streaming player (peachify.top/embed/) replacing old Cinefy player.\n- **4 Streaming Servers**: Peachify (primary), ZXCStream, Videasy, VidLink — all iframe-based with TMDB ID.\n- **4KHDHub Downloads**: New download source with HubCloud bypass for 4K/1080p/720p content.\n- **3-Way Parallel Download Fetch**: VidVault + 4KHDHub + HiCine fetched simultaneously.\n- **ISP Bypass Client**: Unified 3-layer bypass (DoH + TLS 1.3 + CF Worker proxy).\n- **PRDownloader**: Replaced Android DownloadManager with PRDownloader for reliable resume/retry.\n- **Download Manager UI**: Full download tracking with pause/resume/refresh/delete.\n- **Resume Playback**: Save \u0026 restore playback position via CinefyCache.\n- **JSoup Scraping**: Added JSoup for 4KHDHub HTML parsing.\n- **Local File Playback**: Play downloaded MKV files directly in CinefyPlayer."
 }
