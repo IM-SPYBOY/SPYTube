@@ -100,7 +100,7 @@ app/src/main/java/com/spytube/app/
 
 ## Download
 
-Get the latest APK from [Releases](https://github.com/IM-SPYBOY/SPYTube/releases/latest) or visit [spytube.pages.dev](https://spytube.pages.dev).
+Get the latest APK from [Releases](https://github.com/IM-SPYBOY/SPYTube/releases/latest) or visit [SPYTube Web](https://spytube.in).
 
 ---
 
