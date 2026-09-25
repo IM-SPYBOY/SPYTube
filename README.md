@@ -18,7 +18,7 @@
 
 ## Overview
 
-SPYTube is a native Android app built with Kotlin, Jetpack Compose, and a custom AGSL glass shader system. It aggregates publicly available streaming sources into a single interface with no ads, no accounts, and no tracking.
+SPYTube is an Android streaming client built with Kotlin and Jetpack Compose. This repository also includes a web interface. The Android app brings movies, series, anime, and live TV sources into one interface. See the project files and release notes for current implementation details.
 
 ---
 
@@ -57,7 +57,7 @@ SPYTube is a native Android app built with Kotlin, Jetpack Compose, and a custom
 | Player | WebView + HLS.js (bundled locally) |
 | Image Loading | Coil |
 | Data | SharedPreferences, TMDB API |
-| Build | Gradle (Kotlin DSL), JDK 17 |
+| Build | Gradle (Groovy DSL), JDK 17 |
 
 ---
 
@@ -75,7 +75,7 @@ cd SPYTube
 ./gradlew assembleRelease
 ```
 
-> Requires JDK 17 and Android SDK 34+.
+> Build configuration currently uses JDK 17 and Android compile SDK 36. A local Android SDK is needed. The build commands above have not been tested as part of this README edit; the signing setup for release builds needs review before publishing.
 
 ---
 
@@ -100,7 +100,13 @@ app/src/main/java/com/spytube/app/
 
 ## Download
 
-Get the latest APK from [Releases](https://github.com/IM-SPYBOY/SPYTube/releases/latest) or visit [SPYTube Web](https://spytube.in).
+Get the [latest published Android release](https://github.com/IM-SPYBOY/SPYTube/releases/latest) or visit [SPYTube Web](https://spytube.in). At the time of this draft, the latest published release is v1.5. Check the release page for current versions and assets.
+
+---
+
+## Feedback and status
+
+Use [Issues](https://github.com/IM-SPYBOY/SPYTube/issues) for reproducible bugs and feature requests. Include the app version, Android version, expected behavior, and steps to reproduce. Some existing issues remain open; do not assume every advertised feature works on every device or source.
 
 ---
 
