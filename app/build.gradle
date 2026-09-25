@@ -17,25 +17,46 @@ android {
         multiDexEnabled true
     }
 
+    // Supply release signing details through environment variables or the
+    // gitignored local.properties file. Never commit credentials or a keystore.
+    def localSigning = new Properties()
+    def localSigningFile = rootProject.file('local.properties')
+    if (localSigningFile.exists()) {
+        localSigningFile.withInputStream { localSigning.load(it) }
+    }
+    def signingValue = { envKey, propertyKey ->
+        System.getenv(envKey) ?: localSigning.getProperty(propertyKey)
+    }
+    def releaseStorePath = signingValue('SPYTUBE_KEYSTORE_FILE', 'spytube.keystore.file')
+    def releaseStorePassword = signingValue('SPYTUBE_KEYSTORE_PASSWORD', 'spytube.keystore.password')
+    def releaseKeyAlias = signingValue('SPYTUBE_KEY_ALIAS', 'spytube.key.alias')
+    def releaseKeyPassword = signingValue('SPYTUBE_KEY_PASSWORD', 'spytube.key.password')
+    def hasReleaseSigning = [releaseStorePath, releaseStorePassword,
+                             releaseKeyAlias, releaseKeyPassword].every { it }
+
     signingConfigs {
-        release {
-            storeFile file("release.keystore")
-            storePassword "spytube123"
-            keyAlias "spytube_release"
-            keyPassword "spytube123"
+        if (hasReleaseSigning) {
+            release {
+                storeFile rootProject.file(releaseStorePath)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
         }
     }
 
     buildTypes {
         debug {
-            signingConfig signingConfigs.release
+            // Use Android's default debug signing key, not the release key.
             debuggable true
         }
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
     compileOptions {
@@ -68,7 +89,7 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
-    
+
     // Jetpack Compose 2026 BOM
     def composeBom = platform('androidx.compose:compose-bom:2026.01.00')
     implementation composeBom
@@ -88,7 +109,7 @@ dependencies {
     // Liquid Glass (Backdrop) — Real 2026 Frosted Glass
     implementation 'io.github.kyant0:backdrop:2.0.0-alpha01'
     implementation 'io.github.kyant0:shapes:1.0.4'
-    
+
     // Kyant0 backdrop already provides drawBackdrop, vibrancy, blur, lens
 
     // Retrofit & Glide (Legacy/Data)
@@ -98,7 +119,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.12.0'
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
-    
+
     // Flexbox
     implementation 'com.google.android.flexbox:flexbox:3.0.0'
 
@@ -115,7 +136,7 @@ dependencies {
 
     // PRDownloader
     implementation 'com.github.MindorksOpenSource:PRDownloader:0.6.0'
-    
+
     // JSoup
     implementation 'org.jsoup:jsoup:1.17.2'
 }
