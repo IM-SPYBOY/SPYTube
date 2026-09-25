@@ -1,6 +1,3 @@
-<p align="center">
-  <img src="app_icon.png" width="100" alt="SPYTube" />
-</p>
 <h1 align="center">SPYTube</h1>
 <p align="center">
   <strong>Open-source Android streaming client</strong><br>
@@ -116,7 +113,7 @@ This application does not host, store, or distribute any media content. All stre
 
 SPYTube does not claim ownership or responsibility for any material displayed. The app functions solely as an aggregator of publicly accessible resources.
 
-If you are a copyright holder and believe any content infringes your rights, please [contact us](https://t.me/SPYxTube) for prompt removal.
+If you are a copyright holder and believe any content infringes your rights, please [contact us](https://t.me/Spyboi) for prompt removal.
 
 ---
 
