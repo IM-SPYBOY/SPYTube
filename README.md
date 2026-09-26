@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="8-SPYTube-gold-crescent-HD.png" width="200" alt="SPYTube glossy gold crescent logo" />
+  <img src="8-SPYTube-gold-crescent-HD.png" width="140" alt="SPYTube glossy gold crescent logo" />
 </p>
 <h1 align="center">SPYTube</h1>
 <p align="center">
@@ -38,10 +38,10 @@ SPYTube is an Android streaming client built with Kotlin and Jetpack Compose. Th
 ## Screenshots
 
 <p align="center">
-  <img src="4-home-optimized.jpg" width="220" alt="SPYTube Home screen" />
-  <img src="5-movies-optimized.jpg" width="220" alt="SPYTube Movies screen" />
-  <img src="6-livetv-optimized.jpg" width="220" alt="SPYTube Live TV screen" />
-  <img src="7-download-quality-optimized.jpg" width="220" alt="SPYTube download quality options" />
+  <img src="4-home-optimized.jpg" width="145" alt="SPYTube Home screen" />
+  <img src="5-movies-optimized.jpg" width="145" alt="SPYTube Movies screen" />
+  <img src="6-livetv-optimized.jpg" width="145" alt="SPYTube Live TV screen" />
+  <img src="7-download-quality-optimized.jpg" width="145" alt="SPYTube download quality options" />
 </p>
 
 ---
