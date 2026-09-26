@@ -38,10 +38,10 @@ SPYTube is an Android streaming client built with Kotlin and Jetpack Compose. Th
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/home.png" width="200" />
-  <img src="screenshots/detail.png" width="200" />
-  <img src="screenshots/player.png" width="200" />
-  <img src="screenshots/search.png" width="200" />
+  <img src="4-home-optimized.jpg" width="220" alt="SPYTube Home screen" />
+  <img src="5-movies-optimized.jpg" width="220" alt="SPYTube Movies screen" />
+  <img src="6-livetv-optimized.jpg" width="220" alt="SPYTube Live TV screen" />
+  <img src="7-download-quality-optimized.jpg" width="220" alt="SPYTube download quality options" />
 </p>
 
 ---
