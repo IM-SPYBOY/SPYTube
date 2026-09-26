@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="1-SPYTube-crescent.png" width="200" alt="SPYTube gold crescent icon on a black background" />
+  <img src="8-SPYTube-gold-crescent-HD.png" width="200" alt="SPYTube glossy gold crescent logo" />
 </p>
 <h1 align="center">SPYTube</h1>
 <p align="center">
